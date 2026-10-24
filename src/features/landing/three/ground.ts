@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
-import { HEX } from './palette';
-import { hash3, mulberry32, smoothstep } from './random';
+import { HEX } from '../../../shared/palette';
+import { hash3, mulberry32, smoothstep } from '../../../shared/random';
 import { paintFaces, type Painter } from './tree';
 
 const GRASS_DARK = new THREE.Color(HEX.grassDark);

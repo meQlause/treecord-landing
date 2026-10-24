@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mulberry32, range, type Rng } from './random';
+import { mulberry32, range, type Rng } from '../../../shared/random';
 
 const vertexShader = /* glsl */ `
 uniform float uProgress;

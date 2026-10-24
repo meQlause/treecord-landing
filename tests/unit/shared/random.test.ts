@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/random.js';
-import {
-  hash3,
-  mulberry32,
-  range,
-  scatter,
-  smoothstep,
-} from '../../../../../src/features/landing/three/random';
+import * as prototype from '../../../../three-assets/src/random.js';
+import { hash3, mulberry32, range, scatter, smoothstep } from '../../../src/shared/random';
 
 // The prototype's own module is the oracle: the same seed must give the same forest.
 describe('mulberry32', () => {

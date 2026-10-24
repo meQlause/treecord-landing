@@ -1,6 +1,6 @@
 // Leaves drifting down around the camera, in any beat.
 import * as THREE from 'three';
-import { mulberry32 } from './random';
+import { mulberry32 } from '../../../shared/random';
 
 const LEAF_VERTEX = /* glsl */ `
 uniform float uTime;

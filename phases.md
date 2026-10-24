@@ -203,23 +203,29 @@ against the same baseline instead of memory.
 
 ## Phase L4 — Own the SVG art
 
-**Goal:** every SVG asset and its timeline is typed app code; nothing is imported from `../svg-assets` except the copy
-(moved in L5).
+**Goal:** every SVG asset a beat uses, and its timeline, is typed app code; `beats.ts` imports no art from
+`../svg-assets`. What still comes from there is the story copy and the words engine, which L5 moves.
 
-| Area                | Files                                                                                                                                                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Objects             | `src/shared/art/objects.ts(x)`: logo, coin, blind funding, certificate, phone (`PHONE_VIEWBOX`, `PHONE_SCREEN_VIEWBOX`, proof rows), GPS, shield, serial                                                     |
-| Scenes and diagrams | `src/shared/art/scenes.ts(x)` (forgotten seedling, field check), `src/shared/art/diagrams.ts(x)` (pipeline, milestones), `src/shared/art/icons.ts(x)`, `src/shared/art/lowpoly.ts`, `src/shared/art/tree.ts` |
-| Tests               | `tests/unit/shared/art/*.test.ts(x)` mirroring each file                                                                                                                                                     |
+| Area                | Files                                                                                                                                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Primitives          | `src/shared/art/lowpoly.ts` (polygons, fans, blobs, leaves, limbs, `nest`; geometry is written as point strings such as `'22,70 74,70'`), `timeline.ts` (named eases, the "finish at 1" marker), `src/shared/dom.ts` |
+| Story objects       | `coin.ts`, `blind-funding.ts`, `certificate.ts`, `phone.ts`, `shield.ts`, `serial.ts`, `logo.ts`                                                                                                                     |
+| Scenes and diagrams | `forgotten.ts`, `field-check.ts`, `pipeline.ts`, `milestones.ts`, `icons.ts`                                                                                                                                         |
+| Moved to `shared/`  | `src/shared/random.ts` and `src/shared/palette.ts`, now used by both the 3D layer and the art                                                                                                                        |
+| Tests               | `tests/unit/shared/art/*.test.ts`, one per file, each against the prototype's own module; `tests/helpers/timelines.ts` turns a timeline into comparable data                                                         |
+
+Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it), the GPS pin, `coinTimeline`, and
+`PHONE_VIEWBOX`. They stay in `svg-assets/` for its own preview page.
 
 ### Exit criteria
 
-- [ ] Each asset renders the same element tree as the prototype (same root class, `viewBox` and ids the timeline targets) — `tests/unit/shared/art/*.test.tsx`
-- [ ] Each asset timeline is built paused, runs 0..1, and ends in the prototype's end state (drawn strokes, lit nodes, locked values) — `tests/unit/shared/art/*.test.ts`
-- [ ] Proof rows, the serial's meta line and every visible string in the art come from one copy constant, unchanged (L-3)
-- [ ] An SVG stays under about 1,000 nodes; a morphed path is a single `<path>` ([`../foundation.md`](../foundation.md) §5)
-- [ ] Decorative SVGs are `aria-hidden`; the meaning is in the DOM text
-- [ ] The L2 pairs still match by eye
+- [x] Each asset draws the same markup as the prototype, byte for byte: root class, `viewBox`, ids and every facet — `tests/unit/shared/art/*.test.ts`
+- [x] Each asset timeline has the same tweens at the same times, on the same targets with the same vars, and is paused and at least 1 long (the certificate runs to 1.1, as in the prototype) — `tests/unit/shared/art/*.test.ts`
+- [x] The proof rows, serial and meta line, and every visible string in the art are unchanged (L-3); custom proof rows, serials and coin tones render like the prototype's
+- [x] Decorative SVGs carry `aria-hidden` and `focusable="false"`; the meaning is in the DOM text
+- [x] The L2 pairs for the problems, proof, pipeline and roles beats match by eye (only time-based motion and the scrambling characters differ)
+- [ ] An SVG stays under about 1,000 nodes, and a morphed path is a single `<path>`: not measured; the pipeline is the largest and is unchanged from the prototype
+- [ ] The Vite bridge for `gsap` is deleted: `words.js` and `story.js` still import from `svg-assets/`, so it goes with L5
 
 ## Phase L5 — Words engine and beats as JSX
 

@@ -9,7 +9,7 @@ import { createGround } from './ground';
 import { createHeroTree } from './hero-tree';
 import { createLeaves } from './leaves';
 import { createMountains } from './mountains';
-import { HEX } from './palette';
+import { HEX } from '../../../shared/palette';
 
 export const FOG = { near: 28, far: 120, dimNear: 1.5, dimFar: 16 };
 const LIGHT = {

@@ -1,7 +1,7 @@
 // Low-poly clouds for the stage. Same palette, flat shading and light direction as the forest.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { mulberry32, range, smoothstep, within, type Bounds } from './random';
+import { mulberry32, range, smoothstep, within, type Bounds } from '../../../shared/random';
 import { jitter, paintFaces } from './tree';
 
 const CLOUD_LOW = new THREE.Color('#E6E4DC');

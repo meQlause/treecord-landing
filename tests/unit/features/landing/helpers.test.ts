@@ -1,21 +1,6 @@
 import { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import { pick, place } from '../../../../src/features/landing/helpers';
-
-describe('pick', () => {
-  it('returns the element the selector names', () => {
-    const root = document.createElement('div');
-    root.innerHTML = '<p class="copy"></p>';
-
-    expect(pick(root, '.copy')).toBe(root.querySelector('p'));
-  });
-
-  it('throws when the markup lacks the element, naming the selector', () => {
-    const root = document.createElement('div');
-
-    expect(() => pick(root, '.missing')).toThrow('.missing');
-  });
-});
+import { place } from '../../../../src/features/landing/helpers';
 
 describe('place', () => {
   it('adds the asset timeline unpaused, stretched to the length, at the start time', () => {

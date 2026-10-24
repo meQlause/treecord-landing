@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { HEX } from './palette';
-import { hash3, mulberry32, type Bounds, type Rng, within } from './random';
+import { HEX } from '../../../shared/palette';
+import { hash3, mulberry32, type Bounds, type Rng, within } from '../../../shared/random';
 
 const COLOR_KEYS = ['bark', 'barkLight', 'leafDark', 'leafMid', 'leafLight', 'sprout'] as const;
 

@@ -10,7 +10,7 @@ import { greet } from '../../../../svg-assets/src/words.js';
 import { BEATS } from './beats';
 import { ENTER, MOVE, POSES } from './camera';
 import { MOBILE, REDUCE } from '../../shared/motion/env';
-import { pick } from './helpers';
+import { pick } from '../../shared/dom';
 import { createStage3D } from './stage3d';
 import type { Beat, Rig, Timeline } from './types';
 

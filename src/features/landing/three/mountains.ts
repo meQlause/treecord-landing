@@ -1,8 +1,8 @@
 // Three ridges on the horizon, the middle one with a volcano cone (a nod to Indonesia's skyline).
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
-import { HEX } from './palette';
-import { hash3, mulberry32, smoothstep } from './random';
+import { HEX } from '../../../shared/palette';
+import { hash3, mulberry32, smoothstep } from '../../../shared/random';
 
 interface Volcano {
   x: number;

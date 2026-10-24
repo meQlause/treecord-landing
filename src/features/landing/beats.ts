@@ -1,23 +1,20 @@
 // The eight beats of the story: markup, and build() for everything animated inside each one.
 // The camera poses and the moves between beats live in camera.ts; story.ts assembles them.
-import { gsap } from 'gsap';
-import {
-  milestonesSVG,
-  milestonesTimeline,
-  pipelineSVG,
-  pipelineTimeline,
-} from '../../../../svg-assets/src/diagrams.js';
-import { iconSVG, iconTimeline } from '../../../../svg-assets/src/icons.js';
-import * as objects from '../../../../svg-assets/src/objects.js';
-import {
-  fieldCheckSVG,
-  fieldCheckTimeline,
-  forgottenSVG,
-  forgottenTimeline,
-} from '../../../../svg-assets/src/scenes.js';
+import { blindFundingSVG, blindFundingTimeline } from '../../shared/art/blind-funding';
+import { certificateSVG, certificateTimeline } from '../../shared/art/certificate';
+import { fieldCheckSVG, fieldCheckTimeline } from '../../shared/art/field-check';
+import { forgottenSVG, forgottenTimeline } from '../../shared/art/forgotten';
+import { iconSVG, iconTimeline, type IconName } from '../../shared/art/icons';
+import { logoSVG, logoTimeline } from '../../shared/art/logo';
+import { milestonesSVG, milestonesTimeline } from '../../shared/art/milestones';
+import { PHONE_SCREEN_VIEWBOX, phoneSVG, phoneTimeline } from '../../shared/art/phone';
+import { pipelineSVG, pipelineTimeline } from '../../shared/art/pipeline';
+import { serialSVG, serialTimeline } from '../../shared/art/serial';
+import { shieldSVG, shieldTimeline } from '../../shared/art/shield';
 import { STORY } from '../../../../svg-assets/src/story.js';
 import { copyHTML, drawFx, rich, script } from '../../../../svg-assets/src/words.js';
-import { pick, place } from './helpers';
+import { pick } from '../../shared/dom';
+import { place } from './helpers';
 import type { Beat } from './types';
 
 const SPLIT = 'beat--split';
@@ -30,7 +27,7 @@ const hero: Beat = {
   enter: null,
   html: () =>
     copyHTML(STORY.hero.hook, 'hook') +
-    `<div class="brand"><div class="mark">${objects.logoSVG()}<span class="wordmark">Treecord</span></div>${copyHTML([STORY.hero.tagline], 'tagline')}</div>`,
+    `<div class="brand"><div class="mark">${logoSVG()}<span class="wordmark">Treecord</span></div>${copyHTML([STORY.hero.tagline], 'tagline')}</div>`,
   build(timeline, root, rig) {
     const timing = { logoLead: 0.05, logoLength: 0.8, wordmark: 0.3, tagline: 0.55 };
     const logo = pick<SVGElement>(root, '.tc-logo');
@@ -41,7 +38,7 @@ const hero: Beat = {
       pick(root, '.hook'),
       Object.values({ greeted: null, second: 0.5, third: 1 }),
     );
-    place(timeline, objects.logoTimeline(logo, gsap), end - timing.logoLead, timing.logoLength);
+    place(timeline, logoTimeline(logo), end - timing.logoLead, timing.logoLength);
     timeline.from(
       pick(root, '.wordmark'),
       { autoAlpha: 0, x: -24, duration: 0.25, ease: 'power3.out' },
@@ -68,7 +65,7 @@ const problems: Beat = {
   cls: 'beat--strip',
   enter: 'panRight',
   html: () => {
-    const assets = [forgottenSVG(), objects.blindFundingSVG(), objects.certificateSVG()];
+    const assets = [forgottenSVG(), blindFundingSVG(), certificateSVG()];
     const panels = STORY.problems.panels.map(
       (says: unknown[], index: number) =>
         `<div class="panel">${assets[index]}${copyHTML(says)}</div>`,
@@ -85,9 +82,9 @@ const problems: Beat = {
     const strip = pick(root, '.strip');
     const copies = root.querySelectorAll('.copy');
     const assets = [
-      forgottenTimeline(wilt, gsap),
-      objects.blindFundingTimeline(blind, gsap),
-      objects.certificateTimeline(cert, gsap),
+      forgottenTimeline(wilt),
+      blindFundingTimeline(blind),
+      certificateTimeline(cert),
     ];
     // each panel plays its asset and both headlines; the strip only slides on once they have been read
     let clock = 0;
@@ -114,7 +111,7 @@ const proof: Beat = {
   enter: 'zoomIn',
   html: () =>
     copyHTML(STORY.proof.says) +
-    `<div class="stage-box">${objects.phoneSVG()}<div style="display:grid;gap:12px;justify-items:center">${fieldCheckSVG()}${objects.shieldSVG()}</div></div>`,
+    `<div class="stage-box">${phoneSVG()}<div style="display:grid;gap:12px;justify-items:center">${fieldCheckSVG()}${shieldSVG()}</div></div>`,
   build(timeline, root, rig) {
     const timing = { field: 0.2, viewbox: 0.35, shield: 0.35, shieldLead: 0.1 };
     const phone = pick<SVGElement>(root, '.tc-phone');
@@ -129,23 +126,18 @@ const proof: Beat = {
       Object.values({ a: 0, b: 0.4, c: 0.75, d: 1.1 }),
     );
     // the phone records through the first lines, the values lock with "GPS and time", the seal lands with "Rejected"
-    place(timeline, objects.phoneTimeline(phone, gsap), 0, cue[3]);
+    place(timeline, phoneTimeline(phone), 0, cue[3]);
     timeline.to(
       phone,
       {
-        attr: { viewBox: objects.PHONE_SCREEN_VIEWBOX },
+        attr: { viewBox: PHONE_SCREEN_VIEWBOX },
         duration: timing.viewbox,
         ease: EASE.power,
       },
       cue[1],
     );
-    place(timeline, fieldCheckTimeline(field, gsap), timing.field, cue[2] + timing.field);
-    place(
-      timeline,
-      objects.shieldTimeline(shield, gsap),
-      cue[3] + timing.shieldLead,
-      timing.shield,
-    );
+    place(timeline, fieldCheckTimeline(field), timing.field, cue[2] + timing.field);
+    place(timeline, shieldTimeline(shield), cue[3] + timing.shieldLead, timing.shield);
     timeline.to(rig, { pz: 21, duration: end }, 0);
   },
 };
@@ -172,7 +164,7 @@ const pipeline: Beat = {
       svg.style.width = '100%';
     }
     // the proof sets off once "Proof in. Payment out." has been read; each caption lands just before its node lights
-    place(timeline, pipelineTimeline(svg, gsap), timing.start, timing.length);
+    place(timeline, pipelineTimeline(svg), timing.start, timing.length);
     if (motion) {
       timeline.fromTo(
         svg,
@@ -205,7 +197,7 @@ const survival: Beat = {
     );
     // months 0..36 and the tree share one progress, timed so month 36 pays out as "40% waits for month 36" lands
     const months = cue[3] + timing.lastLead;
-    place(timeline, milestonesTimeline(track, gsap), timing.start, months);
+    place(timeline, milestonesTimeline(track), timing.start, months);
     timeline.fromTo(
       rig,
       { heroGrowth: 0 },
@@ -222,7 +214,7 @@ const carbon: Beat = {
   enter: 'zoomOut',
   // the coin is the 3D carbon particles; the registry serial is SVG
   html: () =>
-    `${copyHTML(STORY.carbon.says)}<div class="stage-box" style="align-items:flex-end;padding-bottom:12vh"><div class="glass">${objects.serialSVG()}</div></div>`,
+    `${copyHTML(STORY.carbon.says)}<div class="stage-box" style="align-items:flex-end;padding-bottom:12vh"><div class="glass">${serialSVG()}</div></div>`,
   build(timeline, root, rig) {
     const timing = { coinStart: 0.1, coinTail: 0.3, serialLead: 0.1, serialLength: 0.7 };
     const serial = pick<SVGElement>(root, '.tc-serial');
@@ -239,12 +231,7 @@ const carbon: Beat = {
       { carbon: 1, duration: cue[1] + timing.coinTail, ease: 'power1.inOut' },
       timing.coinStart,
     );
-    place(
-      timeline,
-      objects.serialTimeline(serial, gsap),
-      cue[2] - timing.serialLead,
-      timing.serialLength,
-    );
+    place(timeline, serialTimeline(serial), cue[2] - timing.serialLead, timing.serialLength);
   },
 };
 
@@ -256,7 +243,7 @@ const roles: Beat = {
     const { title, items, cta } = STORY.roles;
     const figures = items.map(
       ([icon, line]: string[]) =>
-        `<figure>${iconSVG(icon)}<figcaption>${rich(line)}</figcaption></figure>`,
+        `<figure>${iconSVG(icon as IconName)}<figcaption>${rich(line)}</figcaption></figure>`,
     );
     const buttons =
       `<a class="btn btn--primary" href="/#/campaigns">${cta.primary}</a>` +
@@ -289,7 +276,7 @@ const roles: Beat = {
       const offset = index * timing.step;
       place(
         timeline,
-        iconTimeline(pick<SVGElement>(figure, '.tc-icon'), gsap),
+        iconTimeline(pick<SVGElement>(figure, '.tc-icon')),
         timing.icon + offset,
         timing.iconLength,
       );

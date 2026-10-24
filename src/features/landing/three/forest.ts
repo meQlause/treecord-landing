@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { HEX } from './palette';
-import { mulberry32, range, scatter, type Clearing, type Rng } from './random';
+import { HEX } from '../../../shared/palette';
+import { mulberry32, range, scatter, type Clearing, type Rng } from '../../../shared/random';
 import {
   createBroadleafGeometry,
   createConiferGeometry,

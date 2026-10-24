@@ -1,6 +1,6 @@
 // A loose flock flying a slow loop over the forest. Dark silhouettes, wings flap in the vertex shader.
 import * as THREE from 'three';
-import { mulberry32, range, type Bounds } from './random';
+import { mulberry32, range, type Bounds } from '../../../shared/random';
 
 const BIRD_FLAP = /* glsl */ `
 #include <begin_vertex>

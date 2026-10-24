@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { HEX } from './palette';
-import { mulberry32, within, type Bounds, type Rng } from './random';
+import { HEX } from '../../../shared/palette';
+import { mulberry32, within, type Bounds, type Rng } from '../../../shared/random';
 import {
   barkColor,
   createTreeMaterial,
