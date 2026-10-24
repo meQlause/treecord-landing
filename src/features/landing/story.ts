@@ -69,7 +69,11 @@ function jumpTo(target: string, beats: Built[], master: Timeline, trigger: Scrol
 }
 
 function playMotion(parts: StageParts, beats: Built[], rig: Rig, hello: Timeline | null): void {
-  gsap.from(rig, { grow: 0, duration: GROW.length, ease: 'power2.out', delay: GROW.delay });
+  // a review jump (?at=beat,progress) shows the beat settled, so it skips the forest's growth on load
+  const target = new URLSearchParams(location.search).get('at');
+  if (!target) {
+    gsap.from(rig, { grow: 0, duration: GROW.length, ease: 'power2.out', delay: GROW.delay });
+  }
   gsap.set(beats[0].root, { autoAlpha: 1 });
   const master = buildMaster(beats, rig, parts.rail);
   const perUnit = MOBILE ? SCROLL_PER_UNIT.mobile : SCROLL_PER_UNIT.desktop;
@@ -84,7 +88,6 @@ function playMotion(parts: StageParts, beats: Built[], rig: Rig, hello: Timeline
   });
   ScrollTrigger.refresh();
   hello?.play();
-  const target = new URLSearchParams(location.search).get('at');
   if (target) {
     jumpTo(target, beats, master, trigger);
   }

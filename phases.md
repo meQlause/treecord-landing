@@ -173,25 +173,33 @@ against the same baseline instead of memory.
 
 ## Phase L3 — Own the 3D layer
 
-**Goal:** the forest, ground, sky, hero tree and carbon particles are typed app code; nothing is imported from
-`../three-assets`.
+**Goal:** the forest, ground, sky, hero tree and carbon particles are typed app code that the stage builds from;
+`stage3d.ts` imports nothing from `../three-assets`.
 
-| Area        | Files                                                                                                                                                                                        |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scene parts | `src/features/landing/three/palette.ts`, `random.ts`, `tree.ts` (shared shader uniforms), `ground.ts`, `forest.ts`, `hero-tree.ts`, `carbon.ts`, `sky.ts` (clouds, mountains, birds, leaves) |
-| Stage       | `src/features/landing/stage3d.ts` imports `src/features/landing/three/*`; the two `as never` casts are gone                                                                                  |
-| Tests       | `tests/unit/features/landing/three/random.test.ts`, `ground.test.ts`, `forest.test.ts`                                                                                                       |
+| Area        | Files                                                                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scene parts | `src/features/landing/three/palette.ts`, `random.ts`, `tree.ts` (shared shader uniforms), `ground.ts`, `forest.ts`, `hero-tree.ts`, `carbon.ts`, and the sky as four files: `clouds.ts`, `mountains.ts`, `birds.ts`, `leaves.ts` |
+| World       | `three/world.ts`: the parts, the light and the fog as pure three.js, so the budgets can be tested without a GPU                                                                                                                  |
+| Stage       | `src/features/landing/stage3d.ts` keeps the renderer, camera and frame loop; the two `as never` casts are gone                                                                                                                   |
+| Tests       | `tests/unit/features/landing/three/*.test.ts`, one per file; each compares against the prototype's own module as an oracle (same seed, same output)                                                                              |
 
 ### Exit criteria
 
-- [ ] `mulberry32`/`hash3` give the same sequence as the prototype for the same seed, so the forest layout is identical — `tests/unit/features/landing/three/random.test.ts`
-- [ ] `heightAt(x, z)` matches the prototype's at sample points; the forest places `count` trees and exposes `tops` for the carbon particles — `tests/unit/features/landing/three/ground.test.ts`, `forest.test.ts`
-- [ ] Every scene part's options and return are typed; `tsc` passes with no cast at any call site
-- [ ] `dispose()` releases every geometry, material and the renderer, and stops the ticker; mounting and unmounting the stage five times leaves one canvas and no growing `renderer.info.memory` — `tests/e2e/landing.spec.ts`
-- [ ] Budgets from [`../foundation.md`](../foundation.md) §5 hold: under 100 draw calls (`renderer.info.render.calls`) on every beat, at most 3 lights, no shadow map; the render loop stops while the stage is off screen — `tests/e2e/landing.spec.ts`
-- [ ] Losing the WebGL context shows the plain paper background and the story still scrolls (`.gl-lost`) — `tests/e2e/landing.spec.ts`
-- [ ] Mobile load (coarse pointer or ≤ 760 px): 1,200 trees, 1,200 particles, DPR ≤ 1.5, no antialias — `tests/unit/features/landing/stage3d.test.ts`
-- [ ] `vite.config.ts` no longer needs the bridge for `three`; the L2 pairs still match by eye
+- [x] `mulberry32`, `hash3`, `smoothstep` and `scatter` give the prototype's output for the same seed, so the forest layout is identical — `tests/unit/features/landing/three/random.test.ts`
+- [x] `heightAt(x, z)` matches the prototype's at sample points and the ground mesh matches vertex for vertex; the forest has the same trees, instance matrices, growth delays and crown tops, and keeps the hero tree's clearing — `ground.test.ts`, `forest.test.ts`
+- [x] Tree geometry (broadleaf and conifer, several seeds) and the three shader modes match the prototype's; the hero tree, carbon particles, clouds, mountains, birds and leaves match too — `tree.test.ts`, `hero-tree.test.ts`, `carbon.test.ts`, `clouds.test.ts`, `mountains.test.ts`, `birds.test.ts`, `leaves.test.ts`
+- [x] Every scene part's options and return are typed; `tsc` passes with no cast at any call site
+- [x] Budgets from [`../foundation.md`](../foundation.md) §5: every mesh and point cloud is one draw call and there are far fewer than 100; at most 3 lights; no shadow map — `three/world.test.ts`
+- [x] `dispose()` lets go of every geometry and material in the scene — `three/world.test.ts`
+- [x] Mobile load: at most 1,200 trees, 1,200 particles, fewer clouds, birds and leaves, DPR capped at 1.5, no antialias — `three/world.test.ts`
+- [x] Losing the WebGL context shows the plain paper background and the story still scrolls — `tests/e2e/context-loss.spec.ts` (this found that three sets `display` inline, which beat the `.gl-lost` rule; the prototype has the same defect, fixed here in the handler)
+- [x] `vite.config.ts` no longer needs the bridge for `three`; it stays for `gsap` until L4 moves the SVG art. The L2 pairs for the hero and carbon beats match by eye
+- [ ] Mounting and unmounting the stage five times leaves one canvas and no growing `renderer.info.memory` — arrives with L6, which makes remounting real (StrictMode)
+- [ ] The render loop stops while the stage is off screen — needs a frame counter the page does not expose yet; settled in L6 with the motion lifecycle
+
+> **A review jump skips the load intro.** `?at=<beat>,<progress>` now shows a beat settled, without the forest's 3.2 s
+> growth, because under software WebGL the intro stretched past any fixed wait (GSAP's lag smoothing slows time when
+> frames are slow) and the early screenshots caught a half-grown forest.
 
 ## Phase L4 — Own the SVG art
 

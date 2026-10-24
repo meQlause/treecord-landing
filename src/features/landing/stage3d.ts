@@ -3,52 +3,12 @@
 // and render() reads them. GSAP never touches three.js directly.
 import { gsap } from 'gsap';
 import * as THREE from 'three';
-import { createCarbon } from '../../../../three-assets/src/carbon.js';
-import { createForest } from '../../../../three-assets/src/forest.js';
-import { createGround } from '../../../../three-assets/src/ground.js';
-import { createHeroTree } from '../../../../three-assets/src/hero-tree.js';
-import { HEX } from '../../../../three-assets/src/palette.js';
-import {
-  createBirds,
-  createClouds,
-  createLeaves,
-  createMountains,
-} from '../../../../three-assets/src/sky.js';
-import { treeUniforms } from '../../../../three-assets/src/tree.js';
+import { FOG, LOAD, createScene, createWorld, type World } from './three/world';
+import { treeUniforms } from './three/tree';
 import type { Rig } from './types';
 
 const CAMERA = { fov: 42, near: 0.1, far: 600 }; // far enough for the ridges at z -330
-const FOG = { near: 28, far: 120, dimNear: 1.5, dimFar: 16 };
-const LIGHT = {
-  sky: '#FFFFFF',
-  hemisphere: 1.6,
-  sun: '#FFF1D6',
-  sunPower: 2.4,
-  sunX: 12,
-  sunY: 20,
-  sunZ: 8,
-};
 const MS_PER_SECOND = 1000;
-const LOAD = {
-  desktop: {
-    forest: 4000,
-    carbon: 2400,
-    clouds: 30,
-    birds: 14,
-    leaves: 150,
-    pixelRatio: 2,
-    antialias: true,
-  },
-  mobile: {
-    forest: 1200,
-    carbon: 1200,
-    clouds: 16,
-    birds: 8,
-    leaves: 70,
-    pixelRatio: 1.5,
-    antialias: false,
-  },
-};
 
 const START_RIG: Rig = {
   px: 0,
@@ -66,40 +26,6 @@ const START_RIG: Rig = {
   clouds: 1,
   wind: 1,
 };
-
-type Load = (typeof LOAD)['desktop'];
-
-function createWorld(load: Load) {
-  const ground = createGround();
-  // the shared JS infers its option defaults as literal types, so the options are cast
-  const forest = createForest({ count: load.forest, heightAt: ground.heightAt } as never);
-  const hero = createHeroTree();
-  const carbon = createCarbon({ sources: forest.tops, count: load.carbon } as never);
-  const clouds = createClouds({ count: load.clouds });
-  const mountains = createMountains();
-  const birds = createBirds({ count: load.birds });
-  const leaves = createLeaves({ count: load.leaves });
-
-  return { ground, forest, hero, carbon, clouds, mountains, birds, leaves };
-}
-
-type World = ReturnType<typeof createWorld>;
-
-function createScene(world: World) {
-  const background = new THREE.Color(HEX.bg);
-  const scene = new THREE.Scene();
-  scene.background = background;
-  scene.fog = new THREE.Fog(background, FOG.near, FOG.far);
-  scene.add(new THREE.HemisphereLight(LIGHT.sky, HEX.earth, LIGHT.hemisphere));
-  const sun = new THREE.DirectionalLight(LIGHT.sun, LIGHT.sunPower);
-  sun.position.set(LIGHT.sunX, LIGHT.sunY, LIGHT.sunZ);
-  scene.add(sun);
-  const { ground, forest, hero, carbon, clouds, mountains, birds, leaves } = world;
-  scene.add(ground.mesh, forest.group, hero.group, carbon.points);
-  scene.add(clouds.group, mountains.group, birds.group, leaves.group);
-
-  return scene;
-}
 
 function applyRig(world: World, rig: Rig, time: number): void {
   const { hero, carbon, clouds, birds } = world;
@@ -177,7 +103,8 @@ function watchHost({
 
   renderer.domElement.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
-    host.classList.add('gl-lost'); // CSS shows the plain paper background instead
+    host.classList.add('gl-lost'); // the plain paper background shows instead
+    renderer.domElement.style.display = 'none'; // three sets display inline, which beats the .gl-lost rule
   });
 
   return {

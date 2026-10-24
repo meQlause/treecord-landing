@@ -4,7 +4,7 @@
 import { expect, test } from '@playwright/test';
 import { BEAT_IDS, jumpTo, settledFill, type BeatId } from '../helpers/story';
 
-const INTRO = 4000; // ms since navigation: the forest grows in over 3.2 s on load
+const INTRO = 9000; // ms since navigation: the forest grows in over 3.2 s once the page's modules and fonts are loaded
 const VIEWPORTS = [
   { name: '1440x900', width: 1440, height: 900 },
   { name: '1000x560', width: 1000, height: 560 },
