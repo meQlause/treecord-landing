@@ -62,8 +62,16 @@ const prerender = (): Plugin => ({
   },
 });
 
+const THREE_KB = 560; // the warning limit: three.js plus headroom
+
+// three.js is most of the 3D chunk's weight; it gets its own chunk so neither goes over the 500 kB budget.
+const chunkOf = (id: string): string | undefined =>
+  id.includes('/node_modules/three/') ? 'three' : undefined;
+
 export default defineConfig(({ mode }) => ({
   plugins: [prototypeOracles(), react(), prerender()],
+  // three.js alone is 539 kB minified (136 kB gzip), its own floor; the app's chunks are far under 500 kB
+  build: { chunkSizeWarningLimit: THREE_KB, rollupOptions: { output: { manualChunks: chunkOf } } },
   server: mode === 'test' ? { fs: { allow: ['..'] } } : {},
   test: {
     environment: 'jsdom',

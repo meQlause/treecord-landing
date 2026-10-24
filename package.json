@@ -19,7 +19,9 @@
     "check:parity": "node scripts/check-parity.ts",
     "e2e": "playwright test --project=chromium",
     "e2e:fidelity": "playwright test --project=fidelity",
-    "e2e:preview": "playwright test --project=preview"
+    "e2e:preview": "playwright test --project=preview",
+    "check:build": "node scripts/check-build.ts",
+    "check:debug": "node scripts/check-debug.ts"
   },
   "dependencies": {
     "gsap": "3.15.0",

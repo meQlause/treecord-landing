@@ -295,15 +295,26 @@ Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it),
 
 ## Phase L8 — Performance and ship
 
-**Goal:** the headline paints first, the bundle is split, and the landing is linked into the site.
+**Goal:** the headline paints first, the bundle is split, and the landing is ready to be linked into the site.
+
+| Area    | Files                                                                                                                                                                                    |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Loading | `rig.ts` (the camera state as plain numbers), `story.ts` builds the story at once and loads `stage3d.ts` (and three.js) as separate chunks afterwards                                    |
+| Release | `stage3d.ts` releases its WebGL context on dispose, and a new stage starts clean                                                                                                         |
+| Links   | `landing.links.ts`: the two calls to action, hash routes by default, the app's path routes with `VITE_APP_ROUTES=path`                                                                   |
+| Checks  | `scripts/check-build.ts` (chunk budgets, lazy 3D, font hints; run after `npm run build`), `scripts/check-debug.ts` (no `console.log`, `debugger` or ScrollTrigger markers in the source) |
 
 ### Exit criteria
 
-- [ ] Three.js and the 3D layer load lazily (`import()` in the effect), so the hero text paints before WebGL; the largest contentful paint is the headline — `tests/e2e/performance.spec.ts`
-- [ ] No chunk over 500 kB after minification; `vite build` prints no size warning
-- [ ] Fonts preconnect and use `display=swap`; the story mounts after `document.fonts.ready`, as now
-- [ ] `?at=` is ignored by the production build, and the heap does not grow across repeated remounts
-- [ ] No `markers`, `console.log` or debug flag in the build ([`../foundation.md`](../foundation.md) §5)
-- [ ] L-11: both CTAs point at the hosting site's real routes from one `LINKS` constant — `tests/e2e/landing.spec.ts`
-- [ ] Checked on a real laptop GPU and a real phone (iPhone Safari, Android Chrome): smooth scrub, no address-bar jump (`svh`), forest renders ([`../landing/README.md`](../landing/README.md) "not yet tested on real devices")
-- [ ] `../landing/` is marked superseded in its README, pointing here
+- [x] three.js and the 3D layer load lazily, in their own chunks, after the text has painted: the first paint comes before the first WebGL draw call, the largest paint is the headline, and `index.html` loads neither chunk up front — `tests/e2e/preview/performance.spec.ts`, `check:build`
+- [x] Chunk budgets: the app's own code is 406 kB and 27 kB (budget 500 kB each); three.js is its own 539 kB chunk (136 kB gzip), its floor, with a 560 kB limit so `vite build` prints no size warning — `npm run check:build`
+- [x] The fonts preconnect to both hosts and use `display=swap`; the story mounts after `document.fonts.ready` — `check:build`
+- [x] `?at=` is ignored by the production build — `tests/e2e/preview/no-js.spec.ts`
+- [x] Five swaps of the 3D stage (reduced motion on and off) leave one canvas, one pin, no `gl-lost` state and under 30 MB of heap growth; each stage releases its WebGL context — `tests/e2e/lifecycle.spec.ts`
+- [x] No `markers`, `console.log` or `debugger` in the source ([`../foundation.md`](../foundation.md) §5) — `npm run check:debug`
+- [x] L-11: both calls to action read from one `LINKS` constant: the mockup's hash routes by default, the app's real path routes (`/campaigns`, `/sign-in?returnTo=%2Fapp`) when built with `VITE_APP_ROUTES=path`; never an external URL — `tests/unit/features/landing/landing.links.test.ts`
+- [x] `../landing/` is marked superseded in its README, pointing here
+- [ ] **Needs you:** checked on a real laptop GPU and a real phone (iPhone Safari, Android Chrome): smooth scrub, no address-bar jump (`svh`), forest renders. Everything here ran in headless Chromium with software WebGL, so frame rate and thermal behaviour are unmeasured ([`../landing/README.md`](../landing/README.md) "not yet tested on real devices" still stands)
+
+> **Decision for you: which routes ship.** `VITE_APP_ROUTES=path` is the setting for hosting the landing beside the
+> app. It is off by default only because the landing is still standalone and the app does not exist yet to link to.

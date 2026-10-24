@@ -1,9 +1,10 @@
 // Assembles the story: every beat's inner timeline, one master timeline of beat / camera move / beat,
 // and the scroll trigger that pins the stage and scrubs it.
 //
-// Two lifetimes. The WebGL stage lives for the whole visit. The story (split words, drawn marks, timelines,
-// the pin) is built by buildStory(), which returns what undoes it, so a resize or a change of the visitor's
-// motion setting rebuilds it in place: no page reload.
+// Two lifetimes. The WebGL stage lives for the whole visit, and loads in its own chunk after the text has
+// painted. The story (split words, drawn marks, timelines, the pin) is built at once, against a plain `rig`
+// of numbers, by buildStory(), which returns what undoes it, so a resize or a change of the visitor's motion
+// setting rebuilds it in place: no page reload.
 import { gsap } from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
@@ -14,7 +15,8 @@ import { pick } from '../../shared/dom';
 import { MOBILE, prefersReducedMotion, watchReducedMotion } from '../../shared/motion/env';
 import { BEATS } from './beats';
 import { ENTER, MOVE, POSES } from './camera';
-import { createStage3D, type Stage3D } from './stage3d';
+import { createRig } from './rig';
+import type { Stage3D } from './stage3d';
 import type { Beat, Rig, Timeline } from './types';
 import { greet } from './words/script';
 
@@ -79,16 +81,12 @@ function jumpTo(target: string, beats: Built[], master: Timeline, trigger: Scrol
 interface Run {
   parts: StageParts;
   rig: Rig;
-  /** First build of a visit: the forest grows in and the hook greets. A rebuild shows both settled. */
+  /** First build of a visit: the hook greets. A rebuild shows it settled. */
   intro: boolean;
 }
 
 function playMotion({ parts, rig, intro }: Run, beats: Built[], hello: Timeline): void {
   const target = reviewTarget();
-  // a review jump shows the beat settled, so it skips the forest's growth on load
-  if (intro && !target) {
-    gsap.from(rig, { grow: 0, duration: GROW.length, ease: 'power2.out', delay: GROW.delay });
-  }
   gsap.set(beats[0].root, { autoAlpha: 1 });
   const master = buildMaster(beats, rig, parts.rail);
   const perUnit = MOBILE ? SCROLL_PER_UNIT.mobile : SCROLL_PER_UNIT.desktop;
@@ -114,17 +112,16 @@ function playMotion({ parts, rig, intro }: Run, beats: Built[], hello: Timeline)
 
 /** Reduced motion: no pin, no scrub. Every beat shows its final state as a plain article, every headline
  * visible, marks drawn. The 3D layer is a still backdrop. */
-function settle({ parts, rig }: Run, beats: Built[], render: () => void): void {
+function settle({ parts, rig }: Run, beats: Built[]): void {
   beats.forEach((beat) => beat.timeline.progress(1));
   gsap.set(parts.stage.querySelectorAll('.say, .strip, .beat'), {
     clearProps: 'opacity,visibility,transform',
   });
-  Object.assign(rig, POSES.roles, { heroGrowth: 1, dim: 0.65 });
-  render();
+  Object.assign(rig, POSES.roles, { heroGrowth: 1, dim: 0.65 }); // the still backdrop renders once its chunk has loaded
 }
 
 /** Builds the story on the mounted stage and returns what undoes it. */
-function buildStory(run: Run, stage3d: Stage3D, reduce: boolean): () => void {
+function buildStory(run: Run, reduce: boolean): () => void {
   const { parts, rig } = run;
   if (reduce) {
     delete parts.stage.dataset.motion;
@@ -138,7 +135,7 @@ function buildStory(run: Run, stage3d: Stage3D, reduce: boolean): () => void {
     const beats = buildBeats(parts.stage, rig, !reduce);
     if (reduce) {
       hello.progress(1);
-      settle(run, beats, stage3d.render);
+      settle(run, beats);
     } else {
       playMotion(run, beats, hello);
     }
@@ -152,21 +149,42 @@ function buildStory(run: Run, stage3d: Stage3D, reduce: boolean): () => void {
 
 interface Session {
   reduce: boolean;
-  stage3d: Stage3D;
+  rig: Rig;
+  /** The WebGL stage, once its chunk has loaded. */
+  stage: Promise<Stage3D>;
   undo: () => void;
   width: number;
 }
 
-function begin(parts: StageParts, reduce: boolean): Session {
-  const stage3d = createStage3D(parts.host, { mobile: MOBILE, still: reduce });
-  const undo = buildStory({ parts, rig: stage3d.rig, intro: true }, stage3d, reduce);
+/** The 3D layer is its own chunk (three.js is most of the page's weight), loaded after the text has painted. */
+const loadStage = (parts: StageParts, rig: Rig, reduce: boolean): Promise<Stage3D> =>
+  import('./stage3d').then(({ createStage3D }) =>
+    createStage3D(parts.host, rig, { mobile: MOBILE, still: reduce }),
+  );
 
-  return { reduce, stage3d, undo, width: innerWidth };
+function begin(parts: StageParts, reduce: boolean): Session {
+  const rig = createRig();
+  const stage = loadStage(parts, rig, reduce);
+  // the forest grows in once there is a forest; a review jump shows the beat settled instead
+  if (!reduce && !reviewTarget()) {
+    void stage.then(() =>
+      gsap.from(rig, { grow: 0, duration: GROW.length, ease: 'power2.out', delay: GROW.delay }),
+    );
+  }
+
+  return {
+    reduce,
+    rig,
+    stage,
+    undo: buildStory({ parts, rig, intro: true }, reduce),
+    width: innerWidth,
+  };
 }
 
 function end(session: Session): void {
   session.undo();
-  session.stage3d.dispose();
+  gsap.killTweensOf(session.rig);
+  void session.stage.then((stage) => stage.dispose());
 }
 
 const scrollRange = (): number => Math.max(document.documentElement.scrollHeight - innerHeight, 1);
@@ -178,11 +196,7 @@ const scrollRange = (): number => Math.max(document.documentElement.scrollHeight
 function rebuild(parts: StageParts, session: Session): void {
   const place = scrollY / scrollRange();
   session.undo();
-  session.undo = buildStory(
-    { parts, rig: session.stage3d.rig, intro: false },
-    session.stage3d,
-    session.reduce,
-  );
+  session.undo = buildStory({ parts, rig: session.rig, intro: false }, session.reduce);
   session.width = innerWidth;
   scrollTo(0, place * scrollRange());
 }
