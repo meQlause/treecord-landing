@@ -93,9 +93,9 @@ flowchart LR
 
 - [x] `npm run check` (`prettier --check`, `eslint --max-warnings=0`, `tsc --noEmit`, `knip`) passes; `fix-flow.mjs .` reports the `react` set with no drift
 - [x] `npm test` runs Vitest 5 in jsdom with Testing Library
-- [ ] `npm run check:parity` fails when a file under `tests/unit/` has no matching source under `src/` (SR-2) — `scripts/check-parity.ts`
+- [x] `npm run check:parity` fails when a file under `tests/unit/` has no matching source under `src/` (SR-2) — `scripts/check-parity.ts`
 - [x] L-8: hooks active (`git config core.hooksPath` is `.husky/_` in the `landing-app/` repo), and a commit with a co-author trailer is rejected (SR-6)
-- [ ] Playwright 1.64 with Chromium installed and `npm run e2e` runs one empty spec (SR-4)
+- [x] Playwright 1.64 with Chromium installed and `npm run e2e` runs a smoke spec (stage mounts, canvas, no console error) (SR-4)
 
 ## Phase L1 — Baseline port
 
