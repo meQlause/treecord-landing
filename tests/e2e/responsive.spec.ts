@@ -7,7 +7,7 @@ const TABLET_LANDSCAPE = { width: 1000, height: 560 };
 const PHONE = { width: 390, height: 844 };
 const PIPELINE_SHARE = 0.4; // the pipeline is at most 40% of the screen height
 const SLACK = 1; // px
-const LOOP_TIMEOUT = 120_000;
+const LOOP_TIMEOUT = 240_000; // a CI runner renders WebGL in software about twice as slowly as a desktop
 
 const showMiddleOf = async (page: Page, beat: BeatId) => {
   await page.goto(jumpTo(beat, 0.5));
