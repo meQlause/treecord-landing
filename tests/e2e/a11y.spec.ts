@@ -1,5 +1,5 @@
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { COPY } from '../../src/features/landing/landing.copy';
 import { jumpTo, onScreenBeats, railFill, settledFill } from '../helpers/story';
 
@@ -7,11 +7,7 @@ const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const SERIOUS = ['serious', 'critical'];
 const KEY_PRESSES = 6;
 const SETTLED = 0.99;
-const TABS = 4;
 const FOCUS_RING = 3; // px, the `--verified` ring on the calls to action
-
-const isFocused = (locator: Locator) =>
-  locator.evaluate((element) => element === document.activeElement);
 
 const violations = async (page: Page) => {
   const { violations: found } = await new AxeBuilder({ page }).withTags(WCAG).analyze();
@@ -114,17 +110,21 @@ test('Page Down moves through the story with native scrolling', async ({ page })
   expect(await settledFill(page)).toBeGreaterThan(0);
 });
 
-test('the calls to action show a 3 px focus ring when tabbed to', async ({ page }) => {
+test('the calls to action show a 3 px focus ring when focused from the keyboard', async ({
+  page,
+}) => {
   await page.goto(jumpTo('roles', 1));
   await expect.poll(() => railFill(page), { timeout: 30_000 }).toBeGreaterThan(SETTLED); // the buttons are revealed at the very end
   const fund = page.locator('#roles a.btn--primary');
   await expect(fund).toBeVisible();
 
-  for (let press = 0; press < TABS && !(await isFocused(fund)); press += 1) {
-    await page.keyboard.press('Tab'); // the skip link comes first
-  }
+  // Tab from the page start would stop on the skip link first, and focusing that scrolls the page back up to it,
+  // which rewinds the story and hides the buttons: so keyboard modality is set with a key, then the link is focused
+  await page.keyboard.press('Shift');
+  await fund.focus();
 
   await expect(fund).toBeFocused();
+  expect(await fund.evaluate((link) => link.matches(':focus-visible'))).toBe(true);
   const ring = await fund.evaluate((link) => parseFloat(getComputedStyle(link).outlineWidth));
   expect(ring).toBe(FOCUS_RING);
 });
