@@ -15,8 +15,10 @@ export default defineConfig({
   workers: 1,
   timeout: 90_000,
   expect: { timeout: 10_000 },
+  globalSetup: './tests/e2e/global-setup.ts',
   use: {
     baseURL: APP,
+    trace: 'retain-on-failure',
     // headless Chromium has no GPU: software WebGL keeps the 3D stage alive
     launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
   },
@@ -30,7 +32,8 @@ export default defineConfig({
     },
   ],
   webServer: [
-    { command: 'npm run dev', url: APP, reuseExistingServer: true },
+    // stdout is piped so a failing CI run shows what the dev server was doing (e.g. a dependency re-optimisation)
+    { command: 'npm run dev', url: APP, reuseExistingServer: true, stdout: 'pipe' },
     ...(previewOnly
       ? [
           {
