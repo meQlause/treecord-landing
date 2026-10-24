@@ -12,5 +12,5 @@ export function watchReducedMotion(onChange: (reduce: boolean) => void): () => v
   return () => query.removeEventListener('change', listener);
 }
 
-/** Phone-class device: fewer trees, lower pixel ratio, shorter scroll per beat. */
-export const MOBILE = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+/** Phone-class screen: fewer trees, lower pixel ratio, shorter scroll per beat. By width only: a touch tablet has the room for the full forest. */
+export const MOBILE = matchMedia('(max-width: 760px)').matches;

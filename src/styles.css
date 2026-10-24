@@ -41,7 +41,7 @@ svg {
 }
 .stage[data-motion] {
   height: 100vh;
-  height: 100svh;
+  height: 100lvh; /* the large viewport: with svh a strip of page shows below the stage once the browser's bars hide */
   overflow: hidden;
 }
 .gl {

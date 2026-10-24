@@ -201,6 +201,7 @@ const TRUNK = {
   jitter: 0.02,
   blobBase: 4,
   blobExtra: 2,
+  intoCrown: 0.6, // the trunk runs up inside the first blob, whose underside floats 0.2 to 0.45 above the trunk's old top
 };
 const TRUNK_HEIGHT: Bounds = { min: 1.1, max: 1.5 };
 
@@ -212,14 +213,15 @@ export function createBroadleafGeometry(seed = 1, detail = 1): THREE.BufferGeome
   const rng = mulberry32(seed);
   const trunkHeight = within(rng, TRUNK_HEIGHT);
   const blobs = TRUNK.blobBase + Math.floor(rng() * TRUNK.blobExtra);
+  const length = trunkHeight + TRUNK.intoCrown;
   const cylinder = new THREE.CylinderGeometry(
     TRUNK.top,
     TRUNK.bottom,
-    trunkHeight,
+    length,
     TRUNK.sides,
     TRUNK.segments,
   );
-  const trunk = prepare(jitter(cylinder, TRUNK.jitter, seed).translate(0, trunkHeight * HALF, 0));
+  const trunk = prepare(jitter(cylinder, TRUNK.jitter, seed).translate(0, length * HALF, 0));
   const parts = [paintFaces(trunk, bark)];
   for (let index = 0; index < blobs; index += 1) {
     parts.push(crownBlob({ rng, seed, detail, trunkHeight, index, blobs }));
