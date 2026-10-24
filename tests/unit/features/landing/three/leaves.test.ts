@@ -1,17 +1,29 @@
 import { Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../src/generated/prototype/three-assets/src/sky.js';
 import { createLeaves } from '../../../../../src/features/landing/three/leaves';
 
-describe('createLeaves', () => {
-  it('seeds the same leaves as the prototype', () => {
-    const ours = createLeaves({ count: 20 });
-    const theirs = prototype.createLeaves({ count: 20 });
-    const seeds = (leaves: {
-      group: { geometry: { attributes: Record<string, { array: ArrayLike<number> }> } };
-    }) => Array.from(leaves.group.geometry.attributes.aSeed.array);
+const seeds = (leaves: ReturnType<typeof createLeaves>) =>
+  Array.from(leaves.group.geometry.attributes.aSeed.array);
 
-    expect(seeds(ours)).toEqual(seeds(theirs as typeof ours));
+describe('createLeaves', () => {
+  it('gives every leaf four random values between 0 and 1', () => {
+    const values = seeds(createLeaves({ count: 20 }));
+
+    expect(values).toHaveLength(20 * 4);
+    expect(values.every((value) => value >= 0 && value < 1)).toBe(true);
+  });
+
+  it('is the same fall for the same seed and a different one for another', () => {
+    expect(seeds(createLeaves({ count: 20 }))).toEqual(seeds(createLeaves({ count: 20 })));
+    expect(seeds(createLeaves({ count: 20 }))).not.toEqual(
+      seeds(createLeaves({ count: 20, seed: 9 })),
+    );
+  });
+
+  it('draws one instance per leaf', () => {
+    const leaves = createLeaves({ count: 20 });
+
+    expect((leaves.group.geometry as unknown as { instanceCount: number }).instanceCount).toBe(20);
   });
 
   it('follows the camera: the wrap box is centred on the position it is given', () => {
@@ -19,7 +31,7 @@ describe('createLeaves', () => {
 
     leaves.update(4, new Vector3(1, 2, 3));
 
-    expect(leaves.uniforms.uTime.value).toBe(4);
+    expect(leaves.uniforms.uTime.value).toBeCloseTo(4);
     expect(leaves.uniforms.uCenter.value.toArray()).toEqual([1, 2, 3]);
   });
 
@@ -30,5 +42,10 @@ describe('createLeaves', () => {
     leaves.update(2);
 
     expect(leaves.uniforms.uCenter.value.toArray()).toEqual([5, 5, 5]);
+    expect(leaves.uniforms.uTime.value).toBeCloseTo(2);
+  });
+
+  it('disposes without throwing', () => {
+    expect(() => createLeaves({ count: 5 }).dispose()).not.toThrow();
   });
 });

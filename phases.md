@@ -12,11 +12,12 @@ sees or does. **Done means it works locally** and looks like the prototype side 
 the same browser.
 
 > **Status: complete.** Every phase is built and verified in headless Chromium (the user accepted that as the
-> validation). The original `landing/`, `svg-assets/` and `three-assets/` folders have been removed; this app is the
-> source of truth. A frozen copy of the prototype lives in [`src/generated/prototype/`](src/generated/prototype/README.md)
-> (a folder pspt's lint config ignores, like the backend's frozen files): the unit tests use it as an oracle, and
-> `npm run e2e:fidelity` serves it as the reference page. Paths below that name `svg-assets`, `three-assets` or
-> `landing` refer to that copy.
+> validation). The original `landing/`, `svg-assets/` and `three-assets/` folders are gone, and so is everything that
+> compared the app with them: the oracle unit tests, the frozen copy and the paired-screenshot project. That was a
+> user decision: the app is the source of truth and will be developed beyond the prototype, so tests pinned to it
+> would only hold it back. Criteria below that say "matches the prototype" were verified at the time they were
+> closed (L1–L5); today the app is held by standalone behaviour tests instead. Paths below that name `svg-assets`,
+> `three-assets` or `landing` refer to the removed prototype. Phase L2 (the fidelity harness) is retired.
 
 ---
 
@@ -110,7 +111,7 @@ flowchart LR
 | ----- | --------------------------------------------------------------------- | ------------ |
 | L0    | Toolchain, TypeScript, test runner                                    | —            |
 | L1    | The prototype runs unchanged inside a React + Vite shell              | —            |
-| L2    | A side-by-side harness that every later phase is checked against      | —            |
+| L2    | A side-by-side harness (retired once the prototype was removed)       | —            |
 | L3    | `three-assets` becomes typed app code                                 | L4           |
 | L4    | `svg-assets` art becomes typed app code                               | L3           |
 | L5    | Copy, words engine and beats owned by React                           | —            |
@@ -157,7 +158,7 @@ flowchart LR
 - [x] `vite build` succeeds; dev load shows the canvas, the pinned stage and no console error
 - [x] Compared in pairs by eye (L-2): all eight beats at 1440×900, and the proof, pipeline, survival and roles beats at 390×844, rendered at the same point in the prototype and the app. Only time-based motion (clouds, leaves, sway, the coin's spin) and the scrambling characters differ. A continuous scroll on a real device is the one open item in L8
 
-## Phase L2 — Fidelity harness
+## Phase L2 — Fidelity harness (retired)
 
 **Goal:** one command shows the prototype and the app at the same scroll point, so every later phase is checked
 against the same baseline instead of memory.

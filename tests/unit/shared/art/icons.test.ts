@@ -1,36 +1,54 @@
-import { gsap } from 'gsap';
+import type { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../src/generated/prototype/svg-assets/src/icons.js';
 import { ICONS, iconSVG, iconTimeline, type IconName } from '../../../../src/shared/art/icons';
-import { describeTimeline, mount } from '../../../helpers/timelines';
+import { mount } from '../../../helpers/timelines';
 
-// The prototype's own module is the oracle: same markup byte for byte, same tweens at the same times.
-const NAMES = Object.keys(prototype.ICONS) as IconName[];
+const NAMES = Object.keys(ICONS) as IconName[];
+const PIPELINE = ['video', 'ai', 'donor', 'chain'];
+const ROLES = ['donorRole', 'planter', 'developer', 'verifier', 'buyer'];
 
 describe('icons', () => {
-  it('has the same four pipeline icons and five role icons as the prototype', () => {
-    expect(Object.keys(ICONS)).toEqual(NAMES);
-    expect(NAMES).toHaveLength(9);
+  it('are the four pipeline nodes and the five roles', () => {
+    expect(NAMES).toEqual([...PIPELINE, ...ROLES]);
   });
 
-  it.each(NAMES)('%s is drawn like the prototype', (name) => {
-    expect(ICONS[name]()).toBe(prototype.ICONS[name]());
-    expect(iconSVG(name)).toBe(prototype.iconSVG(name));
+  it.each(NAMES)('%s is a decorative 64 x 64 svg with one .icon group of facets', (name) => {
+    const root = mount(iconSVG(name));
+
+    expect(root.getAttribute('viewBox')).toBe('0 0 64 64');
+    expect(root.getAttribute('class')).toBe(`tc-icon tc-icon--${name}`);
+    expect(root.getAttribute('aria-hidden')).toBe('true');
+    expect(root.querySelectorAll('.icon')).toHaveLength(1);
+    expect(root.querySelectorAll('polygon').length).toBeGreaterThan(2);
   });
 
-  it('builds the same timeline as the prototype', () => {
-    const ours = mount(iconSVG('planter'));
-    const theirs = mount(prototype.iconSVG('planter'));
-
-    expect(describeTimeline(iconTimeline(ours), ours)).toEqual(
-      describeTimeline(prototype.iconTimeline(theirs, gsap), theirs),
-    );
+  it.each(NAMES)('%s draws the same way twice and differs from the others', (name) => {
+    expect(iconSVG(name)).toBe(iconSVG(name));
+    expect(NAMES.filter((other) => iconSVG(other) === iconSVG(name))).toEqual([name]);
   });
 
-  it('is paused and lasts at least 1, ready to be scrubbed', () => {
-    const timeline = iconTimeline(mount(iconSVG('video')));
+  it('the AI icon has its scan line, the only element the timeline never needs', () => {
+    expect(mount(iconSVG('ai')).querySelector('.scan')).not.toBeNull();
+  });
+
+  it('builds a paused timeline of at least 1 that pops the icon in and settles its facets', () => {
+    const root = mount(iconSVG('planter'));
+    const timeline = iconTimeline(root);
+    const children = timeline.getChildren(true, true, true);
 
     expect(timeline.paused()).toBe(true);
     expect(timeline.duration()).toBeGreaterThanOrEqual(1);
+    expect(children).toHaveLength(3); // the pop, the facets, and the marker that pads it to 1
+  });
+
+  it('settles only the polygons that are direct children of .icon', () => {
+    const root = mount(iconSVG('developer'));
+    const facets = new Set(root.querySelectorAll('.icon > polygon'));
+    const timeline = iconTimeline(root);
+    const moved = timeline
+      .getChildren(true, true, true)
+      .flatMap((child) => (child as gsap.core.Tween).targets?.() ?? []);
+
+    expect([...facets].every((facet) => moved.includes(facet))).toBe(true);
   });
 });

@@ -13,7 +13,7 @@ export const BEAT_IDS = [
 
 export type BeatId = (typeof BEAT_IDS)[number];
 
-/** The review jump both the prototype and the app understand: a beat and a progress within it. */
+/** The development review jump: a beat and a progress within it (?at=survival,0.5). */
 export const jumpTo = (beat: BeatId, progress: number): string => `?at=${beat},${progress}`;
 
 /** Beats that are actually on screen: shown, not faded out, and centred in the viewport (pans park the rest aside). */

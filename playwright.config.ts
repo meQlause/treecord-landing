@@ -1,9 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const APP_PORT = 5178;
-const PROTOTYPE_PORT = 5180;
 const APP = `http://127.0.0.1:${APP_PORT}`;
-const PROTOTYPE = `http://127.0.0.1:${PROTOTYPE_PORT}`;
 const PREVIEW_PORT = 4178;
 const PREVIEW = `http://127.0.0.1:${PREVIEW_PORT}`;
 // the production build is served only for `npm run e2e:preview`, so the other runs do not build it
@@ -23,13 +21,7 @@ export default defineConfig({
     launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
   },
   projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-      testIgnore: ['**/fidelity.spec.ts', '**/preview/**'],
-    },
-    // paired screenshots for review by eye (L-2); slow, so it is its own project: `npm run e2e:fidelity`
-    { name: 'fidelity', use: { ...devices['Desktop Chrome'] }, testMatch: '**/fidelity.spec.ts' },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: '**/preview/**' },
     // the production build, prerendered and served as a visitor gets it: `npm run e2e:preview`
     {
       name: 'preview',
@@ -49,12 +41,5 @@ export default defineConfig({
           },
         ]
       : []),
-    // the frozen prototype keeps its layout (landing/ beside svg-assets/ and three-assets/), so it is served from there
-    {
-      command: `python -m http.server ${PROTOTYPE_PORT} --bind 127.0.0.1`,
-      cwd: 'src/generated/prototype',
-      url: `${PROTOTYPE}/landing/`,
-      reuseExistingServer: true,
-    },
   ],
 });

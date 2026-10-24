@@ -1,19 +1,22 @@
 import type { Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../src/generated/prototype/three-assets/src/hero-tree.js';
 import { createHeroTree } from '../../../../../src/features/landing/three/hero-tree';
 
-describe('createHeroTree', () => {
-  it('builds the same tree mesh as the prototype', () => {
-    const ours = createHeroTree().group.children[0] as Mesh;
-    const theirs = prototype.createHeroTree().group.children[0] as Mesh;
+const treeOf = (seed?: number) => createHeroTree({ seed }).group.children[0] as Mesh;
+const positions = (mesh: Mesh) => Array.from(mesh.geometry.attributes.position.array);
 
-    expect(Array.from(ours.geometry.attributes.position.array)).toEqual(
-      Array.from(theirs.geometry.attributes.position.array),
-    );
-    expect(Array.from(ours.geometry.attributes.aGrow.array)).toEqual(
-      Array.from(theirs.geometry.attributes.aGrow.array),
-    );
+describe('createHeroTree', () => {
+  it('builds one merged tree mesh whose parts carry a pivot and a growth schedule', () => {
+    const { attributes } = treeOf().geometry;
+
+    expect(attributes.aPivot.count).toBe(attributes.position.count);
+    expect(attributes.aGrow.count).toBe(attributes.position.count);
+    expect(positions(treeOf()).every(Number.isFinite)).toBe(true);
+  });
+
+  it('is the same tree for the same seed and a different tree for another', () => {
+    expect(positions(treeOf(11))).toEqual(positions(treeOf(11)));
+    expect(positions(treeOf(11))).not.toEqual(positions(treeOf(12)));
   });
 
   it('holds tree, mound and two halo rings in one named group', () => {
@@ -46,5 +49,21 @@ describe('createHeroTree', () => {
     hero.update(1);
     expect(ring.visible).toBe(true);
     expect(pulse.scale.x).toBeGreaterThan(1);
+  });
+
+  it('pulses: the halo is a different size at a different moment', () => {
+    const hero = createHeroTree();
+    const [, , , pulse] = hero.group.children;
+    hero.focus = 1;
+
+    hero.update(0.5);
+    const early = pulse.scale.x;
+    hero.update(1.5);
+
+    expect(pulse.scale.x).not.toBeCloseTo(early);
+  });
+
+  it('disposes without throwing', () => {
+    expect(() => createHeroTree().dispose()).not.toThrow();
   });
 });

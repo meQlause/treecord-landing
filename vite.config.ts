@@ -47,6 +47,8 @@ const chunkOf = (id: string): string | undefined =>
   id.includes('/node_modules/three/') ? 'three' : undefined;
 
 export default defineConfig({
+  // relative asset URLs: the built page works from any path, e.g. served at /landing/ by the mockup site
+  base: './',
   plugins: [react(), prerender()],
   // three.js alone is 539 kB minified (136 kB gzip), its own floor; the app's chunks are far under 500 kB
   build: { chunkSizeWarningLimit: THREE_KB, rollupOptions: { output: { manualChunks: chunkOf } } },

@@ -1,28 +1,38 @@
-import { gsap } from 'gsap';
+import type { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../src/generated/prototype/svg-assets/src/objects.js';
 import { shieldSVG, shieldTimeline } from '../../../../src/shared/art/shield';
-import { describeTimeline, mount } from '../../../helpers/timelines';
+import { mount } from '../../../helpers/timelines';
 
-// The prototype's own module is the oracle: same markup byte for byte, same tweens at the same times.
+const tweens = (timeline: gsap.core.Timeline) =>
+  timeline.getChildren(true, true, true) as gsap.core.Tween[];
+
 describe('shield', () => {
-  it('draws the same markup as the prototype', () => {
-    expect(shieldSVG()).toBe(prototype.shieldSVG());
+  const root = mount(shieldSVG());
+
+  it('is a decorative 120 x 140 shield with a check mark to draw', () => {
+    expect(root.getAttribute('class')).toBe('tc-shield');
+    expect(root.getAttribute('viewBox')).toBe('0 0 120 140');
+    expect(root.getAttribute('aria-hidden')).toBe('true');
+    expect(root.querySelectorAll('.shield')).toHaveLength(1);
+    expect(root.querySelectorAll('.shield .check')).toHaveLength(1);
+    expect(root.querySelectorAll('polygon')).toHaveLength(6); // a six-point fan
   });
 
-  it('builds the same timeline as the prototype', () => {
-    const ours = mount(shieldSVG());
-    const theirs = mount(prototype.shieldSVG());
-
-    expect(describeTimeline(shieldTimeline(ours), ours)).toEqual(
-      describeTimeline(prototype.shieldTimeline(theirs, gsap), theirs),
-    );
+  it('draws the same way twice', () => {
+    expect(shieldSVG()).toBe(shieldSVG());
   });
 
-  it('is paused and lasts at least 1, ready to be scrubbed', () => {
-    const timeline = shieldTimeline(mount(shieldSVG()));
+  it('builds a paused timeline of at least 1 that pops the shield in, then draws the check', () => {
+    const built = mount(shieldSVG());
+    const timeline = shieldTimeline(built);
+    const startOf = (selector: string) =>
+      tweens(timeline)
+        .find((tween) => tween.targets?.().includes(built.querySelector(selector) as Element))
+        ?.startTime() ?? -1;
 
     expect(timeline.paused()).toBe(true);
     expect(timeline.duration()).toBeGreaterThanOrEqual(1);
+    expect(startOf('.shield')).toBe(0);
+    expect(startOf('.check')).toBeGreaterThan(startOf('.shield'));
   });
 });

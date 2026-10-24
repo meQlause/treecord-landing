@@ -56,7 +56,7 @@ test('scrolling top to bottom grows the progress bar steadily and logs no error'
   expect(problems).toEqual([]);
 });
 
-test('the last beat keeps the prototype links for the two ways in', async ({ page }) => {
+test('the last beat offers the two ways in: fund a tree and become a planter', async ({ page }) => {
   await page.goto(jumpTo('roles', 1));
   await expect.poll(() => onScreenBeats(page), { timeout: 15_000 }).toEqual(['roles']);
 
