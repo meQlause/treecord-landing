@@ -39,22 +39,34 @@ export function Rich({ text }: { text: string }) {
   );
 }
 
-function SayLine({ say }: { say: Say }) {
+type Heading = 'h1' | 'h2';
+
+function SayLine({ say, heading }: { say: Say; heading?: Heading }) {
+  const Line = heading ?? 'p';
+
   return (
     <div className="say">
-      <p className={say.size ? `big big--${say.size}` : 'big'}>
+      <Line className={say.size ? `big big--${say.size}` : 'big'}>
         <Rich text={say.big} />
-      </p>
+      </Line>
     </div>
   );
 }
 
-/** One .copy block: its headlines, one after another. */
-export function Copy({ says, className = '' }: { says: Say[]; className?: string }) {
+/** One .copy block: its headlines, one after another. `heading` makes the first one a heading in the outline. */
+export function Copy({
+  says,
+  className = '',
+  heading,
+}: {
+  says: Say[];
+  className?: string;
+  heading?: Heading;
+}) {
   return (
     <div className={className ? `copy ${className}` : 'copy'}>
-      {says.map((say) => (
-        <SayLine key={say.big} say={say} />
+      {says.map((say, index) => (
+        <SayLine key={say.big} say={say} heading={index === 0 ? heading : undefined} />
       ))}
     </div>
   );

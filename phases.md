@@ -271,14 +271,27 @@ Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it),
 
 **Goal:** everyone can read the whole story: keyboard, screen reader, motion off, small screens, no JavaScript.
 
+| Area       | Files                                                                                                                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Semantics  | The hook is the `h1` and each beat opens with an `h2` (`Copy`'s `heading` prop); the footer takes focus from the skip link (`tabIndex={-1}`); SplitText labels only headings             |
+| Visibility | In the pinned layout a beat is hidden by opacity, not `visibility`, so every beat and headline stays in the accessibility tree; a button is clickable only once its beat has revealed it |
+| No JS      | `landing.view.tsx` is the pure markup; a build-only Vite plugin renders it into `index.html`, and the client adds `data-motion` on mount                                                 |
+| Preview    | `npm run e2e:preview` builds the site and tests it as a visitor gets it                                                                                                                  |
+
 ### Exit criteria
 
-- [ ] "Skip the story" is the first focusable element and moves focus to the footer — `tests/e2e/a11y.spec.ts`
-- [ ] Canvas and art are `aria-hidden`; the reading order is the story order; each beat's headline is a heading in one outline — `tests/e2e/a11y.spec.ts` (axe, no serious or critical violation)
-- [ ] Space, PageDown and the arrow keys move through the story (native scroll, no scroll hijack) — `tests/e2e/a11y.spec.ts`
-- [ ] CTAs have a visible focus ring (`--verified`, 3 px) and meet contrast on the glass panel
-- [ ] No horizontal page scroll at 360 px and 1920 px (NFR-034); on 1000×560 the pipeline is height-bound and headlines sit above glass panels; on ≤ 760 px split beats stack — `tests/e2e/responsive.spec.ts`
-- [ ] L-10: with JavaScript off the beats read top to bottom as an article with the same text — `tests/e2e/no-js.spec.ts`
+- [x] "Skip the story" is the first focusable element and moves focus to the footer — `tests/e2e/a11y.spec.ts`
+- [x] Canvas and art are `aria-hidden`; the reading order is the story order; the headlines form one outline (h1, then one h2 per beat and per problem panel); axe finds no serious or critical violation in the pinned story (first and last beat) or in the reduced-motion article — `a11y.spec.ts`
+- [x] Every beat is in the accessibility tree whichever beat is on screen — `a11y.spec.ts`
+- [x] Page Down moves through the story with native scrolling; no scroll is hijacked — `a11y.spec.ts`
+- [x] The calls to action show a 3 px focus ring when tabbed to — `a11y.spec.ts`. Contrast on the glass panel is covered by axe's colour-contrast rule (serious) in the last-beat scan
+- [x] No horizontal page scroll at 360 px and 1920 px on any beat (NFR-034); at 1000×560 the pipeline is height-bound and sits below its headline; a headline's layer is above a glass panel's; on a phone the two-column beats become one column — `tests/e2e/responsive.spec.ts`
+- [x] L-10: with JavaScript off the beats read top to bottom as an article with the same text, the two links and the footer are there, and nothing scrolls sideways — `tests/e2e/preview/no-js.spec.ts`
+- [x] Resizing or rotating keeps the visitor's place in the story (found by the rotation test: the pin is taken away and put back, and the browser clamps the scroll in between) — `tests/e2e/motion.spec.ts`
+
+> **Two notes.** SplitText's default `aria-label` on a split line is only valid on a heading, so a plain paragraph keeps
+> its split words readable instead (axe flagged it, `script.test.ts` pins the behaviour). The prerendered article has no
+> illustrations: the art is mounted by the client, and it is decorative.
 
 ## Phase L8 — Performance and ship
 

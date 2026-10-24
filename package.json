@@ -18,7 +18,8 @@
     "test": "vitest run",
     "check:parity": "node scripts/check-parity.ts",
     "e2e": "playwright test --project=chromium",
-    "e2e:fidelity": "playwright test --project=fidelity"
+    "e2e:fidelity": "playwright test --project=fidelity",
+    "e2e:preview": "playwright test --project=preview"
   },
   "dependencies": {
     "gsap": "3.15.0",
@@ -27,6 +28,7 @@
     "three": "0.186.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
     "@eslint-community/eslint-plugin-eslint-comments": "4.8.1",

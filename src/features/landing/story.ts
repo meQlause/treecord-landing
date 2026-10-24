@@ -169,8 +169,14 @@ function end(session: Session): void {
   session.stage3d.dispose();
 }
 
-/** A real width change: lines wrap differently, so words and marks are measured again. */
+const scrollRange = (): number => Math.max(document.documentElement.scrollHeight - innerHeight, 1);
+
+/**
+ * A real width change: lines wrap differently, so words and marks are measured again. Taking the pin away and
+ * putting it back makes the browser clamp the scroll position, so the visitor's place in the page is kept.
+ */
 function rebuild(parts: StageParts, session: Session): void {
+  const place = scrollY / scrollRange();
   session.undo();
   session.undo = buildStory(
     { parts, rig: session.stage3d.rig, intro: false },
@@ -178,6 +184,7 @@ function rebuild(parts: StageParts, session: Session): void {
     session.reduce,
   );
   session.width = innerWidth;
+  scrollTo(0, place * scrollRange());
 }
 
 function watchResize(onResize: () => void): () => void {

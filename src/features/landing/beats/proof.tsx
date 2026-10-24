@@ -13,7 +13,7 @@ import { EASE, SPLIT } from './timing';
 function ProofContent() {
   return (
     <>
-      <Copy says={COPY.proof.says} />
+      <Copy says={COPY.proof.says} heading="h2" />
       <div className="stage-box">
         <Art markup={phoneSVG()} />
         <div style={{ display: 'grid', gap: '12px', justifyItems: 'center' }}>

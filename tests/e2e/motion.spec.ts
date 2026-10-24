@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { onScreenBeats, settledFill } from '../helpers/story';
+import { jumpTo, onScreenBeats, railFill } from '../helpers/story';
 
 const WIDE = { width: 1440, height: 900 };
 const NARROW = { width: 1000, height: 560 };
 const PHONE = { width: 390, height: 844 };
+const END = 0.99; // the progress bar is full
 const PHONE_LANDSCAPE = { width: 844, height: 390 };
 
 const stageReady = (page: Page) => page.locator('.pin-spacer').waitFor({ state: 'attached' });
@@ -47,6 +48,16 @@ test('resizing re-measures the words and marks without reloading the page', asyn
   await expect(page.locator('.say .fx-layer')).not.toHaveCount(0);
 });
 
+test('resizing mid-story keeps the visitor on the same beat', async ({ page }) => {
+  await page.setViewportSize(WIDE);
+  await page.goto(jumpTo('survival', 0.5));
+  await expect.poll(() => onScreenBeats(page), { timeout: 15_000 }).toEqual(['survival']);
+
+  await page.setViewportSize({ width: NARROW.width, height: WIDE.height });
+
+  await expect.poll(() => onScreenBeats(page), { timeout: 15_000 }).toEqual(['survival']);
+});
+
 test('rotating a phone recomputes how far the story scrolls', async ({ page }) => {
   await page.setViewportSize(PHONE);
   await page.goto('/');
@@ -57,8 +68,8 @@ test('rotating a phone recomputes how far the story scrolls', async ({ page }) =
 
   await expect.poll(() => pinHeight(page), { timeout: 15_000 }).toBeLessThan(portrait);
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect.poll(() => railFill(page), { timeout: 30_000 }).toBeGreaterThan(END);
   await expect.poll(() => onScreenBeats(page), { timeout: 15_000 }).toEqual(['roles']);
-  expect(await settledFill(page)).toBeGreaterThan(0.99);
 });
 
 test('the hook greets on load, before any scroll', async ({ page }) => {

@@ -12,7 +12,7 @@ import { SPLIT } from './timing';
 function CarbonContent() {
   return (
     <>
-      <Copy says={COPY.carbon.says} />
+      <Copy says={COPY.carbon.says} heading="h2" />
       <div className="stage-box" style={{ alignItems: 'flex-end', paddingBottom: '12vh' }}>
         <div className="glass">
           <Art markup={serialSVG()} />

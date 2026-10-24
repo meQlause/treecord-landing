@@ -25,7 +25,7 @@ function RolesContent() {
 
   return (
     <>
-      <Copy says={[title]} />
+      <Copy says={[title]} heading="h2" />
       <div
         className="stage-box"
         style={{ flexDirection: 'column', justifyContent: 'center', gap: '4vh' }}

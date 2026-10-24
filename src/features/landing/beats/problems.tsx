@@ -18,7 +18,7 @@ function ProblemsContent() {
       {COPY.problems.panels.map((says, index) => (
         <div className="panel" key={says[0].big}>
           <Art markup={PANELS[index]()} />
-          <Copy says={says} />
+          <Copy says={says} heading="h2" />
         </div>
       ))}
     </div>

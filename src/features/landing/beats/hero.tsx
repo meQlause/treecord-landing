@@ -11,7 +11,7 @@ import { EASE } from './timing';
 function HeroContent() {
   return (
     <>
-      <Copy says={COPY.hero.hook} className="hook" />
+      <Copy says={COPY.hero.hook} className="hook" heading="h1" />
       <div className="brand">
         <div className="mark">
           <Art markup={logoSVG()} />

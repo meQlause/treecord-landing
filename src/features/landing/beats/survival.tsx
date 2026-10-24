@@ -12,7 +12,7 @@ import { EASE } from './timing';
 function SurvivalContent() {
   return (
     <>
-      <Copy says={COPY.survival.says} />
+      <Copy says={COPY.survival.says} heading="h2" />
       <div />
       <div className="glass" style={{ justifySelf: 'center', width: 'min(1100px,100%)' }}>
         <Art markup={milestonesSVG()} />

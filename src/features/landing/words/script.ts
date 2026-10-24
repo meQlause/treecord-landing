@@ -11,6 +11,7 @@ export const HOLD = 0.4;
 const REVEAL = 0.17; // words rising before the marks start
 const EXIT = { length: 0.07, lift: -28 };
 const RISE = { yPercent: 120, opacity: 0, rotate: 4, ease: 'power4.out' };
+const HEADING = /^H[1-6]$/;
 const GREET = { delay: 0.15, slow: 0.25, overlap: '-=0.35' };
 
 export interface Prepared {
@@ -21,11 +22,15 @@ export interface Prepared {
 /** Split one say into masked words and draw its marks. Words of a swapped-in phrase wait for their mark. */
 export function prepare(say: Element): Prepared {
   // linesClass "ln" gives the masks class "ln-mask"; the page pads that mask so descenders (g, y) are not clipped
-  const split = SplitText.create(pick(say, '.big'), {
+  const line = pick(say, '.big');
+  const split = SplitText.create(line, {
     type: 'words, lines',
     mask: 'lines',
     wordsClass: 'w',
     linesClass: 'ln',
+    // SplitText labels the line with its original text and hides the pieces; an aria-label is only allowed on
+    // a heading, so a plain paragraph keeps its split words readable instead
+    aria: HEADING.test(line.tagName) ? 'auto' : 'none',
   });
 
   return { words: split.words.filter((word) => !word.closest('.fx--new')), fx: drawFx(say) };

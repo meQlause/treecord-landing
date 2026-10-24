@@ -92,7 +92,17 @@ svg {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  visibility: hidden;
+  /* opacity hides a beat, not visibility: every beat and headline stays in the accessibility tree, so a screen
+     reader reads the whole story whichever beat is on screen. GSAP's autoAlpha sets inline visibility, hence !important. */
+  opacity: 0;
+  visibility: visible !important;
+  pointer-events: none;
+}
+.stage[data-motion] .say {
+  visibility: visible !important;
+}
+.stage[data-motion] .btn {
+  pointer-events: auto; /* a button is only clickable once its beat has revealed it (it is visibility: hidden until then) */
 }
 .beat--hero {
   place-items: start center;

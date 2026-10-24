@@ -48,4 +48,20 @@ describe('Copy', () => {
 
     expect(container.firstElementChild?.className).toBe('copy');
   });
+
+  it('makes only the first headline a heading, so a beat opens one section of the outline', () => {
+    const { container } = render(<Copy says={COPY.proof.says} heading="h2" />);
+    const lines = [...container.querySelectorAll('.big')].map((line) => line.tagName);
+
+    expect(lines[0]).toBe('H2');
+    expect(lines.slice(1).every((tag) => tag === 'P')).toBe(true);
+  });
+
+  it('renders every headline as a paragraph when no heading is asked for', () => {
+    const { container } = render(<Copy says={COPY.seedling.says} />);
+
+    expect([...container.querySelectorAll('.big')].every((line) => line.tagName === 'P')).toBe(
+      true,
+    );
+  });
 });

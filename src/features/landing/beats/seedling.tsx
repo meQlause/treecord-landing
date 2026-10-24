@@ -9,7 +9,7 @@ import { EASE, SPLIT } from './timing';
 function SeedlingContent() {
   return (
     <>
-      <Copy says={COPY.seedling.says} />
+      <Copy says={COPY.seedling.says} heading="h2" />
       <div />
     </>
   );

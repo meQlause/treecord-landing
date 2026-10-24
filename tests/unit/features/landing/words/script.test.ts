@@ -20,6 +20,9 @@ const SAYS = [
 const copy = (count = SAYS.length): HTMLElement =>
   mount(`<div class="copy">${SAYS.slice(0, count).join('')}</div>`);
 
+// The one deliberate difference from the prototype: it labels every split line, which is only valid on a
+// heading, so the markup is compared without the aria attributes and the aria behaviour is tested on its own.
+const withoutAria = (html: string): string => html.replace(/ aria-(label|hidden)="[^"]*"/g, '');
 const REVEAL = 0.17;
 const TIMES = [null, 0.5, 1];
 
@@ -44,7 +47,7 @@ describe('prepare', () => {
     const mine = prepare(ours);
     const prior = prototype.prepare(theirs);
 
-    expect(ours.innerHTML).toBe(theirs.innerHTML);
+    expect(withoutAria(ours.innerHTML)).toBe(withoutAria(theirs.innerHTML));
     expect(mine.words).toHaveLength(prior.words.length);
     expect(describeTimeline(mine.fx, ours)).toEqual(describeTimeline(prior.fx, theirs));
   });
@@ -75,7 +78,7 @@ describe('script', () => {
 
     expect(result).toEqual(expected);
     expect(describeTimeline(mine, ours)).toEqual(describeTimeline(prior, theirs));
-    expect(ours.innerHTML).toBe(theirs.innerHTML);
+    expect(withoutAria(ours.innerHTML)).toBe(withoutAria(theirs.innerHTML));
   });
 
   it('skips a headline whose time is null and holds the next one for HOLD', () => {
@@ -142,8 +145,35 @@ describe('greet', () => {
     const mine = greet(ours);
     const prior = prototype.greet(theirs);
 
-    expect(ours.innerHTML).toBe(theirs.innerHTML);
+    expect(withoutAria(ours.innerHTML)).toBe(withoutAria(theirs.innerHTML));
     expect(mine.delay()).toBe(prior.delay());
     expect(describeTimeline(mine, ours)).toEqual(describeTimeline(prior, theirs));
+  });
+});
+
+describe('prepare and assistive technology', () => {
+  const split = (tag: 'p' | 'h2') => {
+    const say = document.createElement('div');
+    say.innerHTML = `<div class="say"><${tag} class="big">Keeping it alive is the hard part.</${tag}></div>`;
+    const restore = stubLayout();
+    prepare(say.firstElementChild as Element);
+    restore();
+
+    return say.querySelector('.big') as HTMLElement;
+  };
+
+  it('labels a heading with its text and hides the split pieces, as SplitText does', () => {
+    const heading = split('h2');
+
+    expect(heading.getAttribute('aria-label')).toBe('Keeping it alive is the hard part.');
+    expect(heading.querySelector('.w')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('leaves a plain paragraph unlabelled (an aria-label is not allowed there) and its words readable', () => {
+    const paragraph = split('p');
+
+    expect(paragraph.hasAttribute('aria-label')).toBe(false);
+    expect(paragraph.querySelector('.w')?.hasAttribute('aria-hidden')).toBe(false);
+    expect(paragraph.textContent).toBe('Keeping it alive is the hard part.');
   });
 });

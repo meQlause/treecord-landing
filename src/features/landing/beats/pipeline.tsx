@@ -11,7 +11,7 @@ import { script } from '../words/script';
 function PipelineContent() {
   return (
     <>
-      <Copy says={COPY.pipeline.says} />
+      <Copy says={COPY.pipeline.says} heading="h2" />
       <div className="stage-box">
         <Art markup={pipelineSVG()} />
       </div>
