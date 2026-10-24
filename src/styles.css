@@ -318,6 +318,71 @@ svg {
   outline-offset: 3px;
 }
 
+/* ---------- join: the one call to action (beats/join-button.tsx animates the SVG rig with GSAP; this is its
+   shape and its still pose, which is also what reduced motion shows) */
+.btn--join {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px 14px 20px;
+  border-radius: 999px;
+  border: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: linear-gradient(135deg, var(--primary) 0%, #2a6f47 55%, var(--primary) 100%);
+  box-shadow:
+    0 12px 28px -14px rgba(31, 93, 58, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.join-edge {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.join-tracer {
+  fill: none;
+  /* no CSS filter for a glow: Chrome then paints nothing of the rect inside the beat's transformed layer */
+  stroke: #e4fbec;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0;
+}
+.join-seedling {
+  flex: none;
+  overflow: visible;
+}
+.join-soil,
+.join-stem {
+  fill: none;
+  stroke: var(--soft);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.join-soil {
+  opacity: 0.55;
+}
+.join-leaf {
+  fill: #a8e6bd;
+}
+.join-label {
+  display: inline-block;
+}
+.join-arrow {
+  flex: none;
+}
+.join-arrow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* ---------- footer */
 .foot {
   position: relative;

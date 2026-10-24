@@ -3,11 +3,11 @@ import { iconSVG, iconTimeline, type IconName } from '../../../shared/art/icons'
 import { pick } from '../../../shared/dom';
 import { place } from '../helpers';
 import { COPY } from '../landing.copy';
-import { LINKS } from '../landing.links';
 import type { Beat } from '../types';
 import { drawFx } from '../words/marks';
 import { Copy, Rich } from '../words/rich';
 import { script } from '../words/script';
+import { JoinButton } from './join-button';
 
 function Role({ icon, line }: { icon: IconName; line: string }) {
   return (
@@ -38,12 +38,7 @@ function RolesContent() {
         <div style={{ textAlign: 'center' }}>
           <Copy says={[{ big: cta.big, size: 'm' }]} />
           <div className="cta">
-            <a className="btn btn--primary" href={LINKS.fund}>
-              {cta.primary}
-            </a>
-            <a className="btn" href={LINKS.becomePlanter}>
-              {cta.secondary}
-            </a>
+            <JoinButton label={cta.join} />
           </div>
         </div>
       </div>

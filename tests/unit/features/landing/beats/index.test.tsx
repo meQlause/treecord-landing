@@ -50,12 +50,14 @@ describe('BEATS', () => {
     ).toEqual([2, 2, 2]);
   });
 
-  it('offers five roles and the two ways in: fund a tree, or become a planter', () => {
+  it('offers five roles and one way in: Join Treecord, to the app sign-in, named by its words', () => {
     const roles = BEATS[BEATS.length - 1];
     const { container } = render(<roles.Content />);
-    const links = [...container.querySelectorAll('a.btn')].map((link) => link.getAttribute('href'));
+    const links = [...container.querySelectorAll('a.btn')];
 
     expect(container.querySelectorAll('.roles figure')).toHaveLength(5);
-    expect(links).toEqual(['/#/campaigns', '/#/sign-in?account=planter&returnTo=%2Fapp']);
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(['/sign-in']);
+    expect(links[0]?.getAttribute('aria-label')).toBe('Join Treecord');
+    expect(links[0]?.querySelector('.join-sprout .join-stem')).not.toBeNull();
   });
 });

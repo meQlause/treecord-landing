@@ -12,8 +12,15 @@ vi.stubGlobal('matchMedia', (query: string) => ({
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
 }));
+// nor the two observers the call to action uses to fit its outline and to run only while on screen
+class InertObserver {
+  observe = vi.fn();
+  disconnect = vi.fn();
+}
+vi.stubGlobal('ResizeObserver', InertObserver);
+vi.stubGlobal('IntersectionObserver', InertObserver);
 Object.defineProperty(document, 'fonts', {
-  value: { ready: Promise.resolve() },
+  value: { ready: Promise.resolve(), addEventListener: vi.fn(), removeEventListener: vi.fn() },
   configurable: true,
 });
 

@@ -96,7 +96,7 @@ jobs:
       - run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
       - name: Build and push the image
         run: |
-          docker build -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:latest" .
+          docker build --build-arg VITE_APP_URL=https://treecord-web-631130167814.asia-southeast1.run.app -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:latest" .
           docker push "$IMAGE:$GITHUB_SHA"
           docker push "$IMAGE:latest"
       - name: Deploy to Cloud Run

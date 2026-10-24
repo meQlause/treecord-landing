@@ -14,7 +14,7 @@ The scroll story: one pinned stage where a 3D forest, SVG art and headlines move
 | `npm run e2e`          | Chromium journeys against the dev server                                                     |
 | `npm run e2e:preview`  | The production build as a visitor gets it: no-JS article, first paint, `?at=` ignored        |
 
-Build with `VITE_APP_ROUTES=path` to point the two calls to action at the app's path routes.
+Build with `VITE_APP_URL=<app origin>` to point the call to action at the app (`/sign-in`); unset, the link is the path alone.
 
 ## Deploy
 

@@ -113,8 +113,7 @@ export const COPY = {
     ] satisfies { icon: IconName; line: string }[],
     cta: {
       big: 'Every tree, {circle:proven}.',
-      primary: 'Fund a tree',
-      secondary: 'Become a planter',
+      join: 'Join Treecord',
     },
   },
 };

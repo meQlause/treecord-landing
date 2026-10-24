@@ -49,12 +49,9 @@ test.describe('without JavaScript', () => {
   }) => {
     await page.goto('/');
 
-    await expect(page.locator('a.btn')).toHaveCount(2);
-    expect(
-      await page
-        .locator('a.btn')
-        .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
-    ).toEqual([LINKS.fund, LINKS.becomePlanter]);
+    await expect(page.locator('a.btn')).toHaveCount(1);
+    await expect(page.locator('a.btn')).toHaveAttribute('href', LINKS.join);
+    await expect(page.locator('a.btn')).toHaveAccessibleName(COPY.roles.cta.join);
     await expect(page.locator('footer')).toHaveText(COPY.shell.name + COPY.shell.footer);
     await expect(page.locator('#loader')).toBeHidden(); // the loader only shows when scripts run
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

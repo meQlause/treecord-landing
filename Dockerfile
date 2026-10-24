@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 # --ignore-scripts: the husky git hooks have nothing to do in an image build
 RUN npm ci --ignore-scripts
 COPY . .
+ARG VITE_APP_URL
 RUN npm run build
 
 FROM nginx:1.29-alpine

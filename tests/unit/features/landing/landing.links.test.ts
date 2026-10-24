@@ -8,23 +8,15 @@ afterEach(() => {
 });
 
 describe('LINKS', () => {
-  it('keeps the mockup hash routes by default, as the prototype has them', async () => {
-    expect(await load()).toEqual({
-      fund: '/#/campaigns',
-      becomePlanter: '/#/sign-in?account=planter&returnTo=%2Fapp',
-    });
+  it('leads to the app sign-in on the site the build names', async () => {
+    vi.stubEnv('VITE_APP_URL', 'https://app.example/');
+
+    expect(await load()).toEqual({ join: 'https://app.example/sign-in' });
   });
 
-  it('takes the app path routes when built to be hosted beside it', async () => {
-    vi.stubEnv('VITE_APP_ROUTES', 'path');
+  it('is the path alone when no app site is named, for a landing hosted beside the app', async () => {
+    vi.stubEnv('VITE_APP_URL', '');
 
-    expect(await load()).toEqual({ fund: '/campaigns', becomePlanter: '/sign-in?returnTo=%2Fapp' });
-  });
-
-  it('only ever points at an internal path, never at another site', async () => {
-    vi.stubEnv('VITE_APP_ROUTES', 'path');
-    const links = Object.values(await load());
-
-    expect(links.every((link) => link.startsWith('/') && !link.startsWith('//'))).toBe(true);
+    expect(await load()).toEqual({ join: '/sign-in' });
   });
 });

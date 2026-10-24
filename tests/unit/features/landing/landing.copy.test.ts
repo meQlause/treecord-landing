@@ -104,8 +104,7 @@ describe('COPY structure', () => {
     const { cta } = COPY.roles;
 
     expect(cta.big.length).toBeGreaterThan(0);
-    expect([cta.primary, cta.secondary].every((label) => label.trim().length > 0)).toBe(true);
-    expect(cta.primary).not.toBe(cta.secondary);
+    expect(cta.join.trim().length).toBeGreaterThan(0);
   });
 
   it('has the words around the story: skip link, label, name and footer', () => {
