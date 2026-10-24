@@ -1,0 +1,112 @@
+name: ci-cd
+
+# Every pull request and every merge to master is checked. A merge to master that passes is deployed to Cloud Run.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+env:
+  GCP_PROJECT: treecord-512605
+  GCP_REGION: asia-southeast1
+  SERVICE: treecord-landing
+  IMAGE: asia-southeast1-docker.pkg.dev/treecord-512605/treecord/landing
+
+jobs:
+  # pspt's gate (prettier, eslint, tsc, knip), the unit tests, and the build with its budgets
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm run check:parity
+      - run: npm run check:debug
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:build
+
+  # the production build as a visitor gets it: no-JS article, first paint before WebGL, ?at= ignored. Gates the deploy.
+  e2e-preview:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e:preview
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-preview-results
+          path: test-results
+
+  # the full journeys against the dev server (software WebGL, one worker, a few minutes). Reported, does not gate the deploy.
+  e2e:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-results
+          path: test-results
+
+  deploy:
+    needs: [verify, e2e-preview]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # lets the job sign in to Google Cloud with no stored key (workload identity federation)
+    concurrency:
+      group: deploy-landing
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/631130167814/locations/global/workloadIdentityPools/github/providers/github-landing
+          service_account: landing-deployer@treecord-512605.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+      - name: Build and push the image
+        run: |
+          docker build -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:latest" .
+          docker push "$IMAGE:$GITHUB_SHA"
+          docker push "$IMAGE:latest"
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project "$GCP_PROJECT" --region "$GCP_REGION" \
+            --image "$IMAGE:$GITHUB_SHA" \
+            --service-account "landing-runtime@$GCP_PROJECT.iam.gserviceaccount.com" \
+            --allow-unauthenticated --port 8080 \
+            --cpu 1 --memory 256Mi --min-instances 0 --max-instances 3 \
+            --quiet
+          URL=$(gcloud run services describe "$SERVICE" --project "$GCP_PROJECT" --region "$GCP_REGION" --format='value(status.url)')
+          echo "Deployed $GITHUB_SHA to $URL" >> "$GITHUB_STEP_SUMMARY"

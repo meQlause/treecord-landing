@@ -15,3 +15,9 @@ The scroll story: one pinned stage where a 3D forest, SVG art and headlines move
 | `npm run e2e:preview`  | The production build as a visitor gets it: no-JS article, first paint, `?at=` ignored        |
 
 Build with `VITE_APP_ROUTES=path` to point the two calls to action at the app's path routes.
+
+## Deploy
+
+A static site, served by nginx in a container on **Google Cloud Run** (project `treecord-512605`, region `asia-southeast1`, service `treecord-landing`). `.github/workflows/ci-cd.yml` checks every pull request and every merge to `master`; a merge that passes `verify` and `e2e-preview` builds the image, pushes it to Artifact Registry and deploys it. GitHub signs in to Google Cloud with workload identity federation, limited to this repo's `master` branch, so there are no stored keys.
+
+One-off setup, as a project Owner: `bash deploy/gcp-setup.sh`. To try the image locally: `docker build -t landing . && docker run -p 8080:8080 landing`.
