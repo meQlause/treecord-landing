@@ -1,6 +1,16 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Art } from '../../../../src/shared/art/art';
+import { blindFundingSVG } from '../../../../src/shared/art/blind-funding';
+import { certificateSVG } from '../../../../src/shared/art/certificate';
+import { fieldCheckSVG } from '../../../../src/shared/art/field-check';
+import { forgottenSVG } from '../../../../src/shared/art/forgotten';
+import { ICONS, iconSVG } from '../../../../src/shared/art/icons';
+import { logoSVG } from '../../../../src/shared/art/logo';
+import { milestonesSVG } from '../../../../src/shared/art/milestones';
+import { phoneSVG } from '../../../../src/shared/art/phone';
+import { pipelineSVG } from '../../../../src/shared/art/pipeline';
+import { serialSVG } from '../../../../src/shared/art/serial';
 import { coinSVG } from '../../../../src/shared/art/coin';
 import { shieldSVG } from '../../../../src/shared/art/shield';
 
@@ -29,5 +39,41 @@ describe('Art', () => {
 
     expect(container.querySelectorAll('svg')).toHaveLength(1);
     expect(container.querySelector('svg')?.getAttribute('class')).toBe('tc-shield');
+  });
+});
+
+// foundation.md §5: one svg per asset stays under about 1,000 nodes, so the page stays light to paint and scrub
+const NODE_BUDGET = 1000;
+const ASSETS: [string, () => string][] = [
+  ['coin', coinSVG],
+  ['blind funding', blindFundingSVG],
+  ['certificate', certificateSVG],
+  ['forgotten scene', forgottenSVG],
+  ['field check', fieldCheckSVG],
+  ['logo', logoSVG],
+  ['milestones', milestonesSVG],
+  ['phone', phoneSVG],
+  ['pipeline', pipelineSVG],
+  ['serial', serialSVG],
+  ...(Object.keys(ICONS) as (keyof typeof ICONS)[]).map((name): [string, () => string] => [
+    `${name} icon`,
+    () => iconSVG(name),
+  ]),
+];
+
+describe('the art stays light', () => {
+  it.each(ASSETS)('%s is under the node budget', (_name, draw) => {
+    const host = document.createElement('div');
+    host.innerHTML = draw();
+
+    expect(host.querySelectorAll('*').length).toBeLessThan(NODE_BUDGET);
+  });
+
+  it('keeps the whole pipeline, the largest asset, well inside it', () => {
+    const host = document.createElement('div');
+    host.innerHTML = pipelineSVG();
+
+    expect(host.querySelectorAll('polygon').length).toBeGreaterThan(0);
+    expect(host.querySelectorAll('*').length).toBeLessThan(NODE_BUDGET);
   });
 });

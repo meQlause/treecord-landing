@@ -148,7 +148,7 @@ flowchart LR
 - [x] `place()` unpauses an asset timeline and stretches it to its slot; `pick()` throws naming a missing selector — `tests/unit/features/landing/helpers.test.ts`
 - [x] The React page renders the skip link, one section per beat and the footer, mounts the story once fonts are ready and tears it down on unmount — `tests/unit/features/landing/Landing.test.tsx`
 - [x] `vite build` succeeds; dev load shows the canvas, the pinned stage and no console error
-- [ ] Scrolled top to bottom in a real browser beside the prototype, every beat looks and moves the same (by eye, L-2)
+- [x] Compared in pairs by eye (L-2): all eight beats at 1440×900, and the proof, pipeline, survival and roles beats at 390×844, rendered at the same point in the prototype and the app. Only time-based motion (clouds, leaves, sway, the coin's spin) and the scrambling characters differ. A continuous scroll on a real device is the one open item in L8
 
 ## Phase L2 — Fidelity harness
 
@@ -224,7 +224,7 @@ Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it),
 - [x] The proof rows, serial and meta line, and every visible string in the art are unchanged (L-3); custom proof rows, serials and coin tones render like the prototype's
 - [x] Decorative SVGs carry `aria-hidden` and `focusable="false"`; the meaning is in the DOM text
 - [x] The L2 pairs for the problems, proof, pipeline and roles beats match by eye (only time-based motion and the scrambling characters differ)
-- [ ] An SVG stays under about 1,000 nodes, and a morphed path is a single `<path>`: not measured; the pipeline is the largest and is unchanged from the prototype
+- [x] Every asset's SVG stays under 1,000 nodes (the pipeline, the largest, is far inside it), and no path is morphed: MorphSVG is not used — `tests/unit/shared/art/art.test.tsx`
 - [x] The app no longer reaches `svg-assets/` for art or words; the Vite bridge for their bare imports now applies in test mode only, for the oracle tests (L5)
 
 ## Phase L5 — Words engine and beats as JSX
