@@ -158,15 +158,15 @@ against the same baseline instead of memory.
 | Area     | Files                                                                                   |
 | -------- | --------------------------------------------------------------------------------------- |
 | Servers  | `playwright.config.ts`: the prototype served from `..` (`/landing/`), the app from Vite |
-| Journeys | `tests/e2e/landing.spec.ts`                                                             |
+| Journeys | `tests/e2e/landing.spec.ts`, `tests/helpers/story.ts`                                   |
 | Review   | `tests/e2e/fidelity.spec.ts` writes paired screenshots to `test-results/fidelity/`      |
 
 ### Exit criteria
 
-- [ ] For every beat at progress 0, 0.5 and 1 (`?at=<beat>,<p>`) and for the four transitions at `-0.5`, a screenshot pair (prototype | app) is written at 1440×900, 1000×560 and 390×844 — `tests/e2e/fidelity.spec.ts`
-- [ ] Scrolling from top to bottom shows the beats in order: at each beat's label exactly one `.beat` is visible and the rail's `scaleX` grows monotonically — `tests/e2e/landing.spec.ts`
-- [ ] A full scroll logs no console error or page error in Chromium — `tests/e2e/landing.spec.ts`
-- [ ] The two CTAs keep the prototype's `href` values until L8 switches them (L-11) — `tests/e2e/landing.spec.ts`
+- [x] For every beat at progress 0, 0.5 and 1 (`?at=<beat>,<p>`) and for the seven camera moves at `-0.2`, a screenshot pair (prototype | app) is written at 1440×900, 1000×560 and 390×844 — `tests/e2e/fidelity.spec.ts`, run with `npm run e2e:fidelity` (93 pairs, about 30 minutes in software WebGL; it is its own Playwright project so `npm run e2e` stays fast). Checked on `survival` at 0.5: layout, headline mark, panel and track match; only time-based motion (clouds, leaves, sway) differs
+- [x] At the middle of each beat exactly that one beat is on screen (shown, not faded, centred in the viewport), and a top-to-bottom scroll grows the rail's `scaleX` without ever shrinking and ends full — `tests/e2e/landing.spec.ts`
+- [x] A full scroll logs no console error or page error in Chromium — `tests/e2e/landing.spec.ts`
+- [x] The two CTAs keep the prototype's `href` values until L8 switches them (L-11) — `tests/e2e/landing.spec.ts`
 
 > The harness lands before any rewrite. L3–L7 each end with "the L2 pairs still match by eye", which is only cheap
 > when the pairs already exist.
