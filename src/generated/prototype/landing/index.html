@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Treecord</title>
+    <meta
+      name="description"
+      content="We pay communities to keep forests alive and make every tree provable."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f7f6f2;
+        --surface: #ffffff;
+        --text: #1c1f1d;
+        --muted: #6b726e;
+        --primary: #1f5d3a;
+        --soft: #e6f0e9;
+        --verified: #2e9e5b;
+        --gutter: clamp(16px, 6vw, 96px);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      }
+      svg {
+        display: block;
+      }
+      .skip {
+        position: absolute;
+        left: 16px;
+        top: -60px;
+        z-index: 10;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: var(--primary);
+        color: #fff;
+      }
+      .skip:focus {
+        top: 16px;
+      }
+
+      /* ---------- the stage: one pinned viewport, beats stacked on top of each other */
+      .stage {
+        position: relative;
+      }
+      .stage[data-motion] {
+        height: 100vh;
+        height: 100svh;
+        overflow: hidden;
+      }
+      .gl {
+        position: absolute;
+        inset: 0;
+      }
+      .gl canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .gl-lost canvas {
+        display: none;
+      }
+      .stage:not([data-motion]) .gl {
+        position: fixed;
+        z-index: -1;
+      }
+      .rail {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        z-index: 3;
+        height: 3px;
+        width: 100%;
+        background: var(--verified);
+        transform-origin: left;
+        transform: scaleX(0);
+      }
+      .stage:not([data-motion]) .rail {
+        display: none;
+      }
+
+      /* ---------- beats */
+      .beat {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        min-height: 100svh;
+        display: grid;
+        align-items: center;
+        padding: 0 var(--gutter);
+      }
+      .stage[data-motion] .beat {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        visibility: hidden;
+      }
+      .beat--hero {
+        place-items: start center;
+        text-align: center;
+        padding-top: 20vh;
+      }
+      .stage[data-motion] .beat--hero > * {
+        grid-area: 1 / 1;
+      }
+      .beat--split {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: clamp(16px, 4vw, 64px);
+      }
+      .beat--stack {
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        align-items: start;
+        padding-top: 10vh;
+        padding-bottom: 7vh;
+      }
+      .beat--strip {
+        padding: 0;
+      }
+      /* words on the left half, so the 3D subject framed on the right never sits under them */
+      .beat--stack.beat--left .copy {
+        justify-self: start;
+        max-width: 48%;
+        text-align: left;
+      }
+      .beat--stack.beat--left .big {
+        margin-inline: 0;
+      }
+      .stage-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(16px, 4vw, 48px);
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+      }
+      .glass {
+        background: rgb(247 246 242 / 0.8);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 16px;
+        padding: clamp(12px, 2vw, 24px);
+      }
+      .stage-box,
+      .brand,
+      .strip,
+      .glass {
+        position: relative;
+        z-index: 1;
+      }
+      /* headlines always sit above panels: a glass panel's backdrop blur must never fall on the words */
+      .copy {
+        position: relative;
+        z-index: 2;
+      }
+
+      /* ---------- words */
+      .copy {
+        display: grid;
+        gap: 4vh;
+      }
+      .stage[data-motion] .copy {
+        gap: 0;
+      }
+      .say {
+        position: relative;
+        isolation: isolate;
+        align-self: center;
+      }
+      .stage[data-motion] .say {
+        grid-area: 1 / 1;
+      }
+      .big {
+        margin: 0;
+        font-size: clamp(34px, 5.4vw, 76px);
+        font-weight: 800;
+        line-height: 1.04;
+        letter-spacing: -0.035em;
+        max-width: 14ch;
+      }
+      .big--m {
+        font-size: clamp(26px, 3.6vw, 48px);
+        max-width: 20ch;
+      }
+      /* SplitText line masks clip at the line box; grow the clip area so descenders (g, y, p) and
+         raised step numbers survive, and pull it back with negative margins so layout does not move */
+      .ln-mask {
+        padding: 0.1em 0 0.22em;
+        margin: -0.1em 0 -0.22em;
+      }
+      .beat--hero .big,
+      .beat--stack .big,
+      .panel .big {
+        margin-inline: auto;
+      }
+      .beat--stack .copy,
+      .panel .copy {
+        text-align: center;
+      }
+      .num {
+        font:
+          700 0.42em 'JetBrains Mono',
+          monospace;
+        color: var(--verified);
+        vertical-align: 0.9em;
+        margin-right: 0.35em;
+        letter-spacing: 0;
+      }
+      .fx {
+        white-space: nowrap;
+      }
+      .fx-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: visible;
+      }
+      .fx-layer--back {
+        z-index: -1;
+      }
+      .fx-layer svg {
+        position: absolute;
+        overflow: visible;
+      }
+
+      /* ---------- hero */
+      .brand {
+        display: grid;
+        justify-items: center;
+        gap: 18px;
+      }
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: clamp(12px, 2vw, 28px);
+      }
+      .wordmark {
+        font-size: clamp(44px, 8vw, 104px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      /* ---------- problems strip */
+      .strip {
+        display: flex;
+        height: 100%;
+        width: max-content;
+      }
+      .panel {
+        width: 100vw;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 28px;
+        padding: 0 var(--gutter);
+      }
+      .stage:not([data-motion]) .strip {
+        flex-direction: column;
+        width: auto;
+      }
+      .stage:not([data-motion]) .panel {
+        width: auto;
+        min-height: 90svh;
+      }
+
+      /* ---------- roles + cta */
+      .roles {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: clamp(20px, 4vw, 56px);
+      }
+      .roles figure {
+        margin: 0;
+        display: grid;
+        justify-items: center;
+        gap: 12px;
+      }
+      .roles figcaption {
+        position: relative;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-size: clamp(16px, 1.6vw, 22px);
+      }
+      .cta {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 28px;
+      }
+      .btn {
+        font:
+          600 16px 'Plus Jakarta Sans',
+          sans-serif;
+        padding: 14px 22px;
+        border-radius: 12px;
+        text-decoration: none;
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        background: var(--bg);
+      }
+      .btn--primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn:focus-visible {
+        outline: 3px solid var(--verified);
+        outline-offset: 3px;
+      }
+
+      /* ---------- footer */
+      .foot {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 40px var(--gutter);
+        background: var(--primary);
+        color: #fff;
+      }
+      .foot strong {
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
+      .foot span {
+        font:
+          13px 'JetBrains Mono',
+          monospace;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        opacity: 0.8;
+      }
+
+      @media (max-width: 760px) {
+        .beat--split {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto minmax(0, 1fr);
+          align-items: start;
+          padding-top: 10vh;
+          text-align: center;
+        }
+        .beat--split .big {
+          margin-inline: auto;
+        }
+        .beat--stack.beat--left .copy {
+          max-width: none;
+          justify-self: stretch;
+          text-align: center;
+        }
+        .beat--stack.beat--left .big {
+          margin-inline: auto;
+        }
+        .stage-box {
+          flex-direction: column;
+        }
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/",
+          "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.15.0/index.js",
+          "gsap/": "https://cdn.jsdelivr.net/npm/gsap@3.15.0/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#end">Skip the story</a>
+    <main>
+      <section class="stage" id="stage" aria-label="Treecord, every tree proven">
+        <div class="gl"></div>
+        <div class="rail"></div>
+      </section>
+    </main>
+    <footer class="foot" id="end">
+      <strong>Treecord</strong>
+      <span>Every tree, proven.</span>
+    </footer>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../svg-assets/src/icons.js';
+import * as prototype from '../../../../src/generated/prototype/svg-assets/src/icons.js';
 import { ICONS, iconSVG, iconTimeline, type IconName } from '../../../../src/shared/art/icons';
 import { describeTimeline, mount } from '../../../helpers/timelines';
 

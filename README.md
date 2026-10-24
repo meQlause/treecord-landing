@@ -1,6 +1,6 @@
 # Treecord landing
 
-The scroll story: one pinned stage where a 3D forest, SVG art and headlines move on one scrubbed timeline. React 19, Vite, TypeScript (strict), GSAP, three.js. The plan and its exit criteria are in [`phases.md`](phases.md); the prototype it clones is [`../landing`](../landing).
+The scroll story: one pinned stage where a 3D forest, SVG art and headlines move on one scrubbed timeline. React 19, Vite, TypeScript (strict), GSAP, three.js. The plan and its exit criteria are in [`phases.md`](phases.md); the prototype it clones is kept, frozen, in [`src/generated/prototype`](src/generated/prototype/README.md).
 
 | Command                | What it does                                                                                 |
 | ---------------------- | -------------------------------------------------------------------------------------------- |

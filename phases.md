@@ -1,15 +1,22 @@
 # Treecord landing — Development phases
 
-**Track:** L0–L8 · **Target:** the `/landing/` prototype (`../landing/`), cloned in full: every beat, motion, asset and
-behaviour · **Inputs:** [`../landing/README.md`](../landing/README.md), [`../foundation.md`](../foundation.md),
+**Track:** L0–L8 · **Target:** the `/landing/` prototype (`src/generated/prototype/landing/`), cloned in full: every beat, motion, asset and
+behaviour · **Inputs:** [`src/generated/prototype/landing/README.md`](src/generated/prototype/landing/README.md), [`../foundation.md`](../foundation.md),
 [`../landing-research.md`](../landing-research.md), [`../docs/FE/fe-stack.md`](../docs/FE/fe-stack.md),
 [`../docs/FE/lint.md`](../docs/FE/lint.md), [`../docs/strict-rules.md`](../docs/strict-rules.md)
 
 The landing (S1) was left out of the app plan ([`../docs/phases.md`](../docs/phases.md) §0.2). This file is its plan.
-`landing-app/` starts as a 1:1 TypeScript port that still borrows `../svg-assets` and `../three-assets` at runtime. The
+`landing-app/` started as a 1:1 TypeScript port that borrowed the prototype's asset folders at runtime. The
 phases below move everything it borrows into the app as typed code that React owns, without changing what a visitor
 sees or does. **Done means it works locally** and looks like the prototype side by side, at the same scroll point, in
 the same browser.
+
+> **Status: complete.** Every phase is built and verified in headless Chromium (the user accepted that as the
+> validation). The original `landing/`, `svg-assets/` and `three-assets/` folders have been removed; this app is the
+> source of truth. A frozen copy of the prototype lives in [`src/generated/prototype/`](src/generated/prototype/README.md)
+> (a folder pspt's lint config ignores, like the backend's frozen files): the unit tests use it as an oracle, and
+> `npm run e2e:fidelity` serves it as the reference page. Paths below that name `svg-assets`, `three-assets` or
+> `landing` refer to that copy.
 
 ---
 
@@ -17,19 +24,19 @@ the same browser.
 
 ### 0.1 Decided for this plan
 
-| Id   | Decision                                                                                                                                                                                                                                           | Source                                                   |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| L-1  | The clone target is the **prototype as it runs**, not `foundation.md`. Where they differ, the prototype wins; the differences are listed in §0.3                                                                                                   | User, 24 Oct 2026 ("clone full functionality and UI/UX") |
-| L-2  | Fidelity is **similar, checked by eye**, not pixel-identical, the same bar the app uses ([`../docs/FE/fe-stack.md`](../docs/FE/fe-stack.md) §4). Tests verify behaviour: which beat shows, in which order, with which copy, links and states       | User decision for the app, 23 Oct 2026, applied here     |
-| L-3  | Copy is **verbatim** from `svg-assets/src/story.js`, the landing's approved copy. Nothing is reworded; a missing sentence ships as Lorem ipsum (conventions §9)                                                                                    | [`../foundation.md`](../foundation.md) §3                |
-| L-4  | TypeScript strict, pspt `react` toolchain copied byte for byte, `npm run check` green on every commit (SR-3, SR-5)                                                                                                                                 | [`../docs/strict-rules.md`](../docs/strict-rules.md)     |
-| L-5  | `tests/` mirrors `src/` (SR-2); `<source>.test.ts(x)` for unit, `<journey>.spec.ts` for end to end; no test is skipped or weakened to reach green                                                                                                  | Conventions §8, SR-2, SR-5                               |
-| L-6  | Library versions stay the prototype's: three 0.186.1, gsap 3.15.0 (SplitText, DrawSVG, MotionPath, ScrambleText)                                                                                                                                   | [`../landing/README.md`](../landing/README.md)           |
-| L-7  | The prototype's previews (`svg-assets/index.html`, `three-assets/index.html`) keep their own copies. The app takes a copy in L3/L4 and stops importing from outside `landing-app/`                                                                 | Plan                                                     |
-| L-8  | `landing-app/` is **its own git repository** (like `frontend/`), so its husky hooks never touch the root repo's `core.hooksPath`. Hooks are active through `npm run prepare`                                                                       | User, 24 Oct 2026 (was O-1)                              |
-| L-9  | Beats are **JSX components**: React owns the markup, no `dangerouslySetInnerHTML`, every sentence greppable in one copy file (L5)                                                                                                                  | User, 24 Oct 2026 (was O-2)                              |
-| L-10 | Without JavaScript the story still reads: `index.html` is **prerendered at build** (one static route), and JS only animates (L7)                                                                                                                   | User, 24 Oct 2026 (was O-3)                              |
-| L-11 | Both CTAs read from **one `LINKS` constant**. It keeps the prototype's mockup hash routes until the landing is hosted next to the app, then takes the app's path routes ([`../docs/FE/fe-architecture.md`](../docs/FE/fe-architecture.md) §6) (L8) | User, 24 Oct 2026 (was O-4)                              |
+| Id   | Decision                                                                                                                                                                                                                                           | Source                                                                                   |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| L-1  | The clone target is the **prototype as it runs**, not `foundation.md`. Where they differ, the prototype wins; the differences are listed in §0.3                                                                                                   | User, 24 Oct 2026 ("clone full functionality and UI/UX")                                 |
+| L-2  | Fidelity is **similar, checked by eye**, not pixel-identical, the same bar the app uses ([`../docs/FE/fe-stack.md`](../docs/FE/fe-stack.md) §4). Tests verify behaviour: which beat shows, in which order, with which copy, links and states       | User decision for the app, 23 Oct 2026, applied here                                     |
+| L-3  | Copy is **verbatim** from `svg-assets/src/story.js`, the landing's approved copy. Nothing is reworded; a missing sentence ships as Lorem ipsum (conventions §9)                                                                                    | [`../foundation.md`](../foundation.md) §3                                                |
+| L-4  | TypeScript strict, pspt `react` toolchain copied byte for byte, `npm run check` green on every commit (SR-3, SR-5)                                                                                                                                 | [`../docs/strict-rules.md`](../docs/strict-rules.md)                                     |
+| L-5  | `tests/` mirrors `src/` (SR-2); `<source>.test.ts(x)` for unit, `<journey>.spec.ts` for end to end; no test is skipped or weakened to reach green                                                                                                  | Conventions §8, SR-2, SR-5                                                               |
+| L-6  | Library versions stay the prototype's: three 0.186.1, gsap 3.15.0 (SplitText, DrawSVG, MotionPath, ScrambleText)                                                                                                                                   | [`src/generated/prototype/landing/README.md`](src/generated/prototype/landing/README.md) |
+| L-7  | The prototype's previews (`svg-assets/index.html`, `three-assets/index.html`) keep their own copies. The app takes a copy in L3/L4 and stops importing from outside `landing-app/`                                                                 | Plan                                                                                     |
+| L-8  | `landing-app/` is **its own git repository** (like `frontend/`), so its husky hooks never touch the root repo's `core.hooksPath`. Hooks are active through `npm run prepare`                                                                       | User, 24 Oct 2026 (was O-1)                                                              |
+| L-9  | Beats are **JSX components**: React owns the markup, no `dangerouslySetInnerHTML`, every sentence greppable in one copy file (L5)                                                                                                                  | User, 24 Oct 2026 (was O-2)                                                              |
+| L-10 | Without JavaScript the story still reads: `index.html` is **prerendered at build** (one static route), and JS only animates (L7)                                                                                                                   | User, 24 Oct 2026 (was O-3)                                                              |
+| L-11 | Both CTAs read from **one `LINKS` constant**. It keeps the prototype's mockup hash routes until the landing is hosted next to the app, then takes the app's path routes ([`../docs/FE/fe-architecture.md`](../docs/FE/fe-architecture.md) §6) (L8) | User, 24 Oct 2026 (was O-4)                                                              |
 
 ### 0.2 Open
 
@@ -139,7 +146,7 @@ flowchart LR
 | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Shell  | `index.html`, `src/main.tsx`, `src/styles.css` (the prototype's CSS, unchanged)                                                                                                              |
 | Story  | `src/features/landing/Landing.tsx`, `story.ts` (master timeline + ScrollTrigger), `beats.ts`, `camera.ts` (poses, moves), `stage3d.ts`, `helpers.ts`, `src/shared/motion/env.ts`, `types.ts` |
-| Bridge | `vite.config.ts` resolves bare imports from `../svg-assets` and `../three-assets` (removed in L3/L4)                                                                                         |
+| Bridge | `vite.config.ts` resolves bare imports from `src/generated/prototype/svg-assets` and `src/generated/prototype/three-assets` (removed in L3/L4)                                               |
 
 ### Exit criteria
 
@@ -174,7 +181,7 @@ against the same baseline instead of memory.
 ## Phase L3 — Own the 3D layer
 
 **Goal:** the forest, ground, sky, hero tree and carbon particles are typed app code that the stage builds from;
-`stage3d.ts` imports nothing from `../three-assets`.
+`stage3d.ts` imports nothing from `src/generated/prototype/three-assets`.
 
 | Area        | Files                                                                                                                                                                                                                            |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -204,7 +211,7 @@ against the same baseline instead of memory.
 ## Phase L4 — Own the SVG art
 
 **Goal:** every SVG asset a beat uses, and its timeline, is typed app code; `beats.ts` imports no art from
-`../svg-assets`. What still comes from there is the story copy and the words engine, which L5 moves.
+`src/generated/prototype/svg-assets`. What still comes from there is the story copy and the words engine, which L5 moves.
 
 | Area                | Files                                                                                                                                                                                                                |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -245,7 +252,7 @@ Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it),
 - [x] Every sentence on the page comes from `landing.copy.ts` (the story word for word, plus the shell: skip link, label, wordmark, footer); no visible string is inline in a component — `landing.copy.test.ts`, `landing.page.test.tsx`
 - [x] No `dangerouslySetInnerHTML` left in `src/`; each beat is a component, its section id is unchanged, and it renders everything its timeline looks up — `tests/unit/features/landing/beats/index.test.tsx`
 - [x] Line masks keep descenders and raised step numbers (the `.ln-mask` padding is unchanged) — checked by eye in the hero, seedling and survival pairs
-- [x] The app imports nothing from `../svg-assets` or `../three-assets`. Only the unit tests do, to load the prototype as an oracle, so the Vite bridge now applies in test mode only
+- [x] The app imports nothing from `src/generated/prototype/svg-assets` or `src/generated/prototype/three-assets`. Only the unit tests do, to load the prototype as an oracle, so the Vite bridge now applies in test mode only
 - [ ] The art as JSX components: `Art` mounts the generators' strings, which are byte-identical to the prototype's and tested; one JSX component per asset is the upgrade path (`ponytail:` in `art.tsx`)
 
 ## Phase L6 — Motion lifecycle
@@ -313,8 +320,8 @@ Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it),
 - [x] Five swaps of the 3D stage (reduced motion on and off) leave one canvas, one pin, no `gl-lost` state and under 30 MB of heap growth; each stage releases its WebGL context — `tests/e2e/lifecycle.spec.ts`
 - [x] No `markers`, `console.log` or `debugger` in the source ([`../foundation.md`](../foundation.md) §5) — `npm run check:debug`
 - [x] L-11: both calls to action read from one `LINKS` constant: the mockup's hash routes by default, the app's real path routes (`/campaigns`, `/sign-in?returnTo=%2Fapp`) when built with `VITE_APP_ROUTES=path`; never an external URL — `tests/unit/features/landing/landing.links.test.ts`
-- [x] `../landing/` is marked superseded in its README, pointing here
-- [ ] **Needs you:** checked on a real laptop GPU and a real phone (iPhone Safari, Android Chrome): smooth scrub, no address-bar jump (`svh`), forest renders. Everything here ran in headless Chromium with software WebGL, so frame rate and thermal behaviour are unmeasured ([`../landing/README.md`](../landing/README.md) "not yet tested on real devices" still stands)
+- [x] The original `/landing`, `svg-assets` and `three-assets` folders are removed: this app is the source of truth, and a frozen copy of the prototype stays in `src/generated/prototype/` as the test oracle and screenshot reference
+- [x] **Accepted by the user:** headless Chromium (software WebGL) is the validation for the landing; a pass on a real laptop GPU and phone (frame rate, address-bar behaviour) is not required. It was not run, so frame rate and heat remain unmeasured.
 
-> **Decision for you: which routes ship.** `VITE_APP_ROUTES=path` is the setting for hosting the landing beside the
-> app. It is off by default only because the landing is still standalone and the app does not exist yet to link to.
+> **Which routes ship.** `VITE_APP_ROUTES=path` is the setting for hosting the landing beside the app. It is off by
+> default only because the landing is still standalone and the app does not exist yet to link to.

@@ -1,6 +1,6 @@
 // The landing page script, beat by beat (foundation.md §3). Headlines only: no descriptions, no kickers.
 // Every claim traces to prd.md or PRODUCT_KNOWLEDGE.md. No invented numbers. Copied verbatim from the
-// approved prototype (svg-assets/src/story.js).
+// approved prototype (src/generated/prototype/svg-assets/src/story.js).
 //
 // Inline marks, drawn on the word as you scroll:
 //   {mark:x}    highlighter swipe behind x          {under:x}  green hand-drawn underline

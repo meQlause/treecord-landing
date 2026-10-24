@@ -1,6 +1,6 @@
 import type { InstancedMesh } from 'three';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/forest.js';
+import * as prototype from '../../../../../src/generated/prototype/three-assets/src/forest.js';
 import { createForest } from '../../../../../src/features/landing/three/forest';
 
 const heightAt = (posX: number, posZ: number) => Math.sin(posX * 0.1) + Math.cos(posZ * 0.1);

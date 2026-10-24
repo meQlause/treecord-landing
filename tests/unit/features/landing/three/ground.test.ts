@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/ground.js';
+import * as prototype from '../../../../../src/generated/prototype/three-assets/src/ground.js';
 import { createGround } from '../../../../../src/features/landing/three/ground';
 
 const SAMPLES: [number, number][] = [

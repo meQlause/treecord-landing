@@ -1,6 +1,6 @@
 import { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../svg-assets/src/objects.js';
+import * as prototype from '../../../../src/generated/prototype/svg-assets/src/objects.js';
 import {
   PHONE_SCREEN_VIEWBOX,
   PROOF_ROWS,

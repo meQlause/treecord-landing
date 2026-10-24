@@ -1,6 +1,6 @@
 import type { Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/hero-tree.js';
+import * as prototype from '../../../../../src/generated/prototype/three-assets/src/hero-tree.js';
 import { createHeroTree } from '../../../../../src/features/landing/three/hero-tree';
 
 describe('createHeroTree', () => {

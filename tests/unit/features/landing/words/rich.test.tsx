@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../svg-assets/src/words.js';
+import * as prototype from '../../../../../src/generated/prototype/svg-assets/src/words.js';
 import { COPY } from '../../../../../src/features/landing/landing.copy';
 import { Copy, Rich } from '../../../../../src/features/landing/words/rich';
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../svg-assets/src/words.js';
+import * as prototype from '../../../../../src/generated/prototype/svg-assets/src/words.js';
 import { drawFx } from '../../../../../src/features/landing/words/marks';
 import { stubLayout } from '../../../../helpers/layout';
 import { describeTimeline, mount } from '../../../../helpers/timelines';

@@ -1,6 +1,6 @@
 import { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../svg-assets/src/diagrams.js';
+import * as prototype from '../../../../src/generated/prototype/svg-assets/src/diagrams.js';
 import { milestonesSVG, milestonesTimeline } from '../../../../src/shared/art/milestones';
 import { describeTimeline, mount } from '../../../helpers/timelines';
 

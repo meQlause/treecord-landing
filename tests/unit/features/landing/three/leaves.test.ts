@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/sky.js';
+import * as prototype from '../../../../../src/generated/prototype/three-assets/src/sky.js';
 import { createLeaves } from '../../../../../src/features/landing/three/leaves';
 
 describe('createLeaves', () => {

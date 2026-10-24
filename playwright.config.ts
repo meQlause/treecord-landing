@@ -49,10 +49,10 @@ export default defineConfig({
           },
         ]
       : []),
-    // the prototype imports ../three-assets and ../svg-assets, so it is served from the repo root
+    // the frozen prototype keeps its layout (landing/ beside svg-assets/ and three-assets/), so it is served from there
     {
       command: `python -m http.server ${PROTOTYPE_PORT} --bind 127.0.0.1`,
-      cwd: '..',
+      cwd: 'src/generated/prototype',
       url: `${PROTOTYPE}/landing/`,
       reuseExistingServer: true,
     },

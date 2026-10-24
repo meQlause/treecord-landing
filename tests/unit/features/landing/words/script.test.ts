@@ -1,7 +1,7 @@
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../svg-assets/src/words.js';
+import * as prototype from '../../../../../src/generated/prototype/svg-assets/src/words.js';
 import {
   HOLD,
   greet,

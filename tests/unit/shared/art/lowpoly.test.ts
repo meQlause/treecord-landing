@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import * as objects from '../../../../../svg-assets/src/objects.js';
-import * as prototype from '../../../../../svg-assets/src/lowpoly.js';
+import * as objects from '../../../../src/generated/prototype/svg-assets/src/objects.js';
+import * as prototype from '../../../../src/generated/prototype/svg-assets/src/lowpoly.js';
 import { HEX } from '../../../../src/shared/palette';
 import { mulberry32 } from '../../../../src/shared/random';
 import {

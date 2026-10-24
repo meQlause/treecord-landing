@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/tree.js';
+import * as prototype from '../../../../../src/generated/prototype/three-assets/src/tree.js';
 import {
   createBroadleafGeometry,
   createConiferGeometry,

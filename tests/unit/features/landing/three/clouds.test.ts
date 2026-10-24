@@ -1,6 +1,6 @@
 import type { InstancedMesh } from 'three';
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/sky.js';
+import * as prototype from '../../../../../src/generated/prototype/three-assets/src/sky.js';
 import { createClouds } from '../../../../../src/features/landing/three/clouds';
 
 const matrices = (group: { children: unknown[] }) =>

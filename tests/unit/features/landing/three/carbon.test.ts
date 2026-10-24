@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../../three-assets/src/carbon.js';
+import * as prototype from '../../../../../src/generated/prototype/three-assets/src/carbon.js';
 import { createCarbon } from '../../../../../src/features/landing/three/carbon';
 
 const sources = new Float32Array(Array.from({ length: 60 }, (_item, index) => (index * 7) % 23));

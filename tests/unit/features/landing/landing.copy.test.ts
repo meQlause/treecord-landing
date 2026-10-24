@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { STORY } from '../../../../../svg-assets/src/story.js';
+import { STORY } from '../../../../src/generated/prototype/svg-assets/src/story.js';
 import { COPY } from '../../../../src/features/landing/landing.copy';
 
 // The prototype's own script is the oracle: the approved copy must reach the page word for word (L-3).

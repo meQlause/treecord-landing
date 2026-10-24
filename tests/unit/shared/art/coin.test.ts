@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as prototype from '../../../../../svg-assets/src/objects.js';
+import * as prototype from '../../../../src/generated/prototype/svg-assets/src/objects.js';
 import { coinSVG } from '../../../../src/shared/art/coin';
 
 // The prototype's own module is the oracle: same markup byte for byte.
