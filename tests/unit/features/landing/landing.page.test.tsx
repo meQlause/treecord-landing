@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { BEATS } from '../../../src/landing/beats';
-import { Landing } from '../../../src/landing/Landing';
-import { mountStory } from '../../../src/landing/story';
+import { BEATS } from '../../../../src/features/landing/beats';
+import { Landing } from '../../../../src/features/landing/landing.page';
+import { mountStory } from '../../../../src/features/landing/story';
 
 // the story needs WebGL and layout, neither of which jsdom has; this file covers the React skeleton only
-vi.mock('../../../src/landing/story', () => ({ mountStory: vi.fn(() => vi.fn()) }));
+vi.mock('../../../../src/features/landing/story', () => ({ mountStory: vi.fn(() => vi.fn()) }));
 
 describe('Landing', () => {
   it('renders the skip link, one section per beat and the footer', () => {

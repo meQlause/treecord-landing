@@ -1,8 +1,8 @@
 import { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import { BEATS } from '../../../src/landing/beats';
-import { ENTER, MOVE, POSES } from '../../../src/landing/camera';
-import type { Enter } from '../../../src/landing/types';
+import { BEATS } from '../../../../src/features/landing/beats';
+import { ENTER, MOVE, POSES } from '../../../../src/features/landing/camera';
+import type { Enter } from '../../../../src/features/landing/types';
 
 const play = (move: Enter) => {
   const out = document.createElement('div');

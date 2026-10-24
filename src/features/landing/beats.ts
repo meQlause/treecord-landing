@@ -6,17 +6,17 @@ import {
   milestonesTimeline,
   pipelineSVG,
   pipelineTimeline,
-} from '../../../svg-assets/src/diagrams.js';
-import { iconSVG, iconTimeline } from '../../../svg-assets/src/icons.js';
-import * as objects from '../../../svg-assets/src/objects.js';
+} from '../../../../svg-assets/src/diagrams.js';
+import { iconSVG, iconTimeline } from '../../../../svg-assets/src/icons.js';
+import * as objects from '../../../../svg-assets/src/objects.js';
 import {
   fieldCheckSVG,
   fieldCheckTimeline,
   forgottenSVG,
   forgottenTimeline,
-} from '../../../svg-assets/src/scenes.js';
-import { STORY } from '../../../svg-assets/src/story.js';
-import { copyHTML, drawFx, rich, script } from '../../../svg-assets/src/words.js';
+} from '../../../../svg-assets/src/scenes.js';
+import { STORY } from '../../../../svg-assets/src/story.js';
+import { copyHTML, drawFx, rich, script } from '../../../../svg-assets/src/words.js';
 import { pick, place } from './helpers';
 import type { Beat } from './types';
 

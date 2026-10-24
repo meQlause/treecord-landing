@@ -3,18 +3,18 @@
 // and render() reads them. GSAP never touches three.js directly.
 import { gsap } from 'gsap';
 import * as THREE from 'three';
-import { createCarbon } from '../../../three-assets/src/carbon.js';
-import { createForest } from '../../../three-assets/src/forest.js';
-import { createGround } from '../../../three-assets/src/ground.js';
-import { createHeroTree } from '../../../three-assets/src/hero-tree.js';
-import { HEX } from '../../../three-assets/src/palette.js';
+import { createCarbon } from '../../../../three-assets/src/carbon.js';
+import { createForest } from '../../../../three-assets/src/forest.js';
+import { createGround } from '../../../../three-assets/src/ground.js';
+import { createHeroTree } from '../../../../three-assets/src/hero-tree.js';
+import { HEX } from '../../../../three-assets/src/palette.js';
 import {
   createBirds,
   createClouds,
   createLeaves,
   createMountains,
-} from '../../../three-assets/src/sky.js';
-import { treeUniforms } from '../../../three-assets/src/tree.js';
+} from '../../../../three-assets/src/sky.js';
+import { treeUniforms } from '../../../../three-assets/src/tree.js';
 import type { Rig } from './types';
 
 const CAMERA = { fov: 42, near: 0.1, far: 600 }; // far enough for the ridges at z -330

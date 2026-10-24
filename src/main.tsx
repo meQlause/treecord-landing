@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { Landing } from './landing/Landing';
+import { Landing } from './features/landing/landing.page';
 import './styles.css';
 
 // No StrictMode: the landing builds a WebGL context and scroll timelines on mount, and the beats' markup is

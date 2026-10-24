@@ -3,7 +3,7 @@
 // React owns the page skeleton; GSAP owns everything inside the stage once it is mounted.
 import { useEffect, useRef } from 'react';
 import { BEATS } from './beats';
-import { REDUCE } from './env';
+import { REDUCE } from '../../shared/motion/env';
 import { mountStory } from './story';
 
 export function Landing() {

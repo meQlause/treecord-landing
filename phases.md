@@ -48,6 +48,40 @@ None. O-1 to O-4 were settled as L-8 to L-11.
 
 > Written down so each one stops coming back as a fresh idea mid-phase.
 
+### 0.4 Folder structure
+
+The app follows [`../docs/FE/fe-architecture.md`](../docs/FE/fe-architecture.md) §2: the landing is the `landing`
+feature, shared pieces live in `shared/`, and `tests/` mirrors `src/` exactly (SR-2, checked by
+`npm run check:parity`).
+
+```
+src/
+  main.tsx                          root: global styles, the page
+  styles.css                        the prototype's CSS (the design)
+  features/landing/
+    landing.page.tsx                route component: skeleton, mounts the story
+    landing.copy.ts                 every sentence (L5)                   ← svg-assets/src/story.js
+    story.ts                        master timeline, ScrollTrigger, mount/teardown
+    beats.ts  →  beats/*.tsx        the eight beats (L5)
+    camera.ts                       poses and the moves between beats
+    stage3d.ts                      the 3D stage; rig; render loop
+    three/                          forest, ground, tree, hero tree, carbon, sky (L3)  ← three-assets/src
+    words/                          rich marks, scribbles, script/greet (L5)           ← svg-assets/src/words.js
+    helpers.ts  types.ts
+  shared/
+    art/                            SVG art and icons, each with its timeline (L4)     ← svg-assets/src
+    motion/env.ts                   reduced-motion and mobile flags (pause-motion joins in L6)
+tests/
+  unit/                             mirrors src/
+  e2e/                              <journey>.spec.ts, Chromium
+  helpers/setup.ts                  jsdom gaps
+scripts/check-parity.ts             SR-2
+```
+
+Rules that follow from it: a page component wires, presentational components take props; copy lives in
+`landing.copy.ts` and never inline; a `*.rules.ts` file, if the landing needs one, is pure (SR-7); no chained JSX
+ternary (use a `const` map).
+
 ---
 
 ## 1. Phase map
@@ -101,18 +135,18 @@ flowchart LR
 
 **Goal:** the prototype's story runs inside React + Vite in TypeScript, with the same beats, timings and camera.
 
-| Area   | Files                                                                                                                                                             |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shell  | `index.html`, `src/main.tsx`, `src/styles.css` (the prototype's CSS, unchanged)                                                                                   |
-| Story  | `src/landing/Landing.tsx`, `story.ts` (master timeline + ScrollTrigger), `beats.ts`, `camera.ts` (poses, moves), `stage3d.ts`, `helpers.ts`, `env.ts`, `types.ts` |
-| Bridge | `vite.config.ts` resolves bare imports from `../svg-assets` and `../three-assets` (removed in L3/L4)                                                              |
+| Area   | Files                                                                                                                                                                                        |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell  | `index.html`, `src/main.tsx`, `src/styles.css` (the prototype's CSS, unchanged)                                                                                                              |
+| Story  | `src/features/landing/Landing.tsx`, `story.ts` (master timeline + ScrollTrigger), `beats.ts`, `camera.ts` (poses, moves), `stage3d.ts`, `helpers.ts`, `src/shared/motion/env.ts`, `types.ts` |
+| Bridge | `vite.config.ts` resolves bare imports from `../svg-assets` and `../three-assets` (removed in L3/L4)                                                                                         |
 
 ### Exit criteria
 
-- [x] Eight beats in the prototype's order (hero, seedling, problems, proof, pipeline, survival, carbon, roles); only the hero has no entering move — `tests/unit/landing/beats.test.ts`
-- [x] Every beat has a camera pose; zoom in/out settle the incoming beat at scale 1 and fade the outgoing one; pans push the outgoing beat ±100% — `tests/unit/landing/camera.test.ts`
-- [x] `place()` unpauses an asset timeline and stretches it to its slot; `pick()` throws naming a missing selector — `tests/unit/landing/helpers.test.ts`
-- [x] The React skeleton renders the skip link, one section per beat and the footer, mounts the story once fonts are ready and tears it down on unmount — `tests/unit/landing/Landing.test.tsx`
+- [x] Eight beats in the prototype's order (hero, seedling, problems, proof, pipeline, survival, carbon, roles); only the hero has no entering move — `tests/unit/features/landing/beats.test.ts`
+- [x] Every beat has a camera pose; zoom in/out settle the incoming beat at scale 1 and fade the outgoing one; pans push the outgoing beat ±100% — `tests/unit/features/landing/camera.test.ts`
+- [x] `place()` unpauses an asset timeline and stretches it to its slot; `pick()` throws naming a missing selector — `tests/unit/features/landing/helpers.test.ts`
+- [x] The React page renders the skip link, one section per beat and the footer, mounts the story once fonts are ready and tears it down on unmount — `tests/unit/features/landing/Landing.test.tsx`
 - [x] `vite build` succeeds; dev load shows the canvas, the pinned stage and no console error
 - [ ] Scrolled top to bottom in a real browser beside the prototype, every beat looks and moves the same (by eye, L-2)
 
@@ -142,21 +176,21 @@ against the same baseline instead of memory.
 **Goal:** the forest, ground, sky, hero tree and carbon particles are typed app code; nothing is imported from
 `../three-assets`.
 
-| Area        | Files                                                                                                                                                                       |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scene parts | `src/three/palette.ts`, `random.ts`, `tree.ts` (shared shader uniforms), `ground.ts`, `forest.ts`, `hero-tree.ts`, `carbon.ts`, `sky.ts` (clouds, mountains, birds, leaves) |
-| Stage       | `src/landing/stage3d.ts` imports `src/three/*`; the two `as never` casts are gone                                                                                           |
-| Tests       | `tests/unit/three/random.test.ts`, `ground.test.ts`, `forest.test.ts`                                                                                                       |
+| Area        | Files                                                                                                                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scene parts | `src/features/landing/three/palette.ts`, `random.ts`, `tree.ts` (shared shader uniforms), `ground.ts`, `forest.ts`, `hero-tree.ts`, `carbon.ts`, `sky.ts` (clouds, mountains, birds, leaves) |
+| Stage       | `src/features/landing/stage3d.ts` imports `src/features/landing/three/*`; the two `as never` casts are gone                                                                                  |
+| Tests       | `tests/unit/features/landing/three/random.test.ts`, `ground.test.ts`, `forest.test.ts`                                                                                                       |
 
 ### Exit criteria
 
-- [ ] `mulberry32`/`hash3` give the same sequence as the prototype for the same seed, so the forest layout is identical — `tests/unit/three/random.test.ts`
-- [ ] `heightAt(x, z)` matches the prototype's at sample points; the forest places `count` trees and exposes `tops` for the carbon particles — `tests/unit/three/ground.test.ts`, `forest.test.ts`
+- [ ] `mulberry32`/`hash3` give the same sequence as the prototype for the same seed, so the forest layout is identical — `tests/unit/features/landing/three/random.test.ts`
+- [ ] `heightAt(x, z)` matches the prototype's at sample points; the forest places `count` trees and exposes `tops` for the carbon particles — `tests/unit/features/landing/three/ground.test.ts`, `forest.test.ts`
 - [ ] Every scene part's options and return are typed; `tsc` passes with no cast at any call site
 - [ ] `dispose()` releases every geometry, material and the renderer, and stops the ticker; mounting and unmounting the stage five times leaves one canvas and no growing `renderer.info.memory` — `tests/e2e/landing.spec.ts`
 - [ ] Budgets from [`../foundation.md`](../foundation.md) §5 hold: under 100 draw calls (`renderer.info.render.calls`) on every beat, at most 3 lights, no shadow map; the render loop stops while the stage is off screen — `tests/e2e/landing.spec.ts`
 - [ ] Losing the WebGL context shows the plain paper background and the story still scrolls (`.gl-lost`) — `tests/e2e/landing.spec.ts`
-- [ ] Mobile load (coarse pointer or ≤ 760 px): 1,200 trees, 1,200 particles, DPR ≤ 1.5, no antialias — `tests/unit/landing/stage3d.test.ts`
+- [ ] Mobile load (coarse pointer or ≤ 760 px): 1,200 trees, 1,200 particles, DPR ≤ 1.5, no antialias — `tests/unit/features/landing/stage3d.test.ts`
 - [ ] `vite.config.ts` no longer needs the bridge for `three`; the L2 pairs still match by eye
 
 ## Phase L4 — Own the SVG art
@@ -164,16 +198,16 @@ against the same baseline instead of memory.
 **Goal:** every SVG asset and its timeline is typed app code; nothing is imported from `../svg-assets` except the copy
 (moved in L5).
 
-| Area                | Files                                                                                                                                                                     |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Objects             | `src/art/objects.ts(x)`: logo, coin, blind funding, certificate, phone (`PHONE_VIEWBOX`, `PHONE_SCREEN_VIEWBOX`, proof rows), GPS, shield, serial                         |
-| Scenes and diagrams | `src/art/scenes.ts(x)` (forgotten seedling, field check), `src/art/diagrams.ts(x)` (pipeline, milestones), `src/art/icons.ts(x)`, `src/art/lowpoly.ts`, `src/art/tree.ts` |
-| Tests               | `tests/unit/art/*.test.ts(x)` mirroring each file                                                                                                                         |
+| Area                | Files                                                                                                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Objects             | `src/shared/art/objects.ts(x)`: logo, coin, blind funding, certificate, phone (`PHONE_VIEWBOX`, `PHONE_SCREEN_VIEWBOX`, proof rows), GPS, shield, serial                                                     |
+| Scenes and diagrams | `src/shared/art/scenes.ts(x)` (forgotten seedling, field check), `src/shared/art/diagrams.ts(x)` (pipeline, milestones), `src/shared/art/icons.ts(x)`, `src/shared/art/lowpoly.ts`, `src/shared/art/tree.ts` |
+| Tests               | `tests/unit/shared/art/*.test.ts(x)` mirroring each file                                                                                                                                                     |
 
 ### Exit criteria
 
-- [ ] Each asset renders the same element tree as the prototype (same root class, `viewBox` and ids the timeline targets) — `tests/unit/art/*.test.tsx`
-- [ ] Each asset timeline is built paused, runs 0..1, and ends in the prototype's end state (drawn strokes, lit nodes, locked values) — `tests/unit/art/*.test.ts`
+- [ ] Each asset renders the same element tree as the prototype (same root class, `viewBox` and ids the timeline targets) — `tests/unit/shared/art/*.test.tsx`
+- [ ] Each asset timeline is built paused, runs 0..1, and ends in the prototype's end state (drawn strokes, lit nodes, locked values) — `tests/unit/shared/art/*.test.ts`
 - [ ] Proof rows, the serial's meta line and every visible string in the art come from one copy constant, unchanged (L-3)
 - [ ] An SVG stays under about 1,000 nodes; a morphed path is a single `<path>` ([`../foundation.md`](../foundation.md) §5)
 - [ ] Decorative SVGs are `aria-hidden`; the meaning is in the DOM text
@@ -183,18 +217,18 @@ against the same baseline instead of memory.
 
 **Goal:** the copy, the masked line reveals, the hand-drawn marks and every beat's markup are React's (L-9).
 
-| Area  | Files                                                                                                                                                                          |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Copy  | `src/landing/landing.copy.ts`: `story.js` verbatim, including the `{circle:…}`, `{num:…}`, `{swap:a\|b}` mark syntax                                                           |
-| Words | `src/words/rich.tsx` (marks → spans), `src/words/marks.ts` (scribble paths, DrawSVG), `src/words/script.ts` (`speak`, `script`, `greet`, `HOLD`)                               |
-| Beats | `src/landing/beats/Hero.tsx`, `Seedling.tsx`, `Problems.tsx`, `Proof.tsx`, `Pipeline.tsx`, `Survival.tsx`, `Carbon.tsx`, `Roles.tsx`, each with its `build` timeline beside it |
+| Area  | Files                                                                                                                                                                                               |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Copy  | `src/features/landing/landing.copy.ts`: `story.js` verbatim, including the `{circle:…}`, `{num:…}`, `{swap:a\|b}` mark syntax                                                                       |
+| Words | `src/features/landing/words/rich.tsx` (marks → spans), `src/features/landing/words/marks.ts` (scribble paths, DrawSVG), `src/features/landing/words/script.ts` (`speak`, `script`, `greet`, `HOLD`) |
+| Beats | `src/features/landing/beats/Hero.tsx`, `Seedling.tsx`, `Problems.tsx`, `Proof.tsx`, `Pipeline.tsx`, `Survival.tsx`, `Carbon.tsx`, `Roles.tsx`, each with its `build` timeline beside it             |
 
 ### Exit criteria
 
-- [ ] `rich()` turns every mark kind in the legend into the prototype's span shape (`.fx[data-fx]`, `.num`, strike + new) — `tests/unit/words/rich.test.tsx`
-- [ ] `script()` returns the time each line has really been read and its `end`, for `null` (already greeted) and numeric cues — `tests/unit/words/script.test.ts`
+- [ ] `rich()` turns every mark kind in the legend into the prototype's span shape (`.fx[data-fx]`, `.num`, strike + new) — `tests/unit/features/landing/words/rich.test.tsx`
+- [ ] `script()` returns the time each line has really been read and its `end`, for `null` (already greeted) and numeric cues — `tests/unit/features/landing/words/script.test.ts`
 - [ ] Every sentence on the page comes from `landing.copy.ts`; `grep` finds no visible string in a component (L-3)
-- [ ] L-9: no `dangerouslySetInnerHTML` left in `src/`; each beat is a component and its section id is unchanged — `tests/unit/landing/beats/*.test.tsx`
+- [ ] L-9: no `dangerouslySetInnerHTML` left in `src/`; each beat is a component and its section id is unchanged — `tests/unit/features/landing/beats/*.test.tsx`
 - [ ] Line masks keep descenders and raised step numbers (`.ln-mask` padding) — by eye in the L2 pairs
 - [ ] The words engine no longer imports `../svg-assets`; the Vite bridge plugin is deleted; the L2 pairs still match by eye
 
@@ -202,19 +236,19 @@ against the same baseline instead of memory.
 
 **Goal:** motion follows the visitor's settings and the window live, with no page reload and no leak.
 
-| Area   | Files                                                                                   |
-| ------ | --------------------------------------------------------------------------------------- |
-| Motion | `src/landing/story.ts` on `gsap.matchMedia()`; `useGSAP` from `@gsap/react` for scoping |
-| Resize | SplitText `autoSplit` re-measures lines and marks; the `ponytail:` reload is deleted    |
+| Area   | Files                                                                                            |
+| ------ | ------------------------------------------------------------------------------------------------ |
+| Motion | `src/features/landing/story.ts` on `gsap.matchMedia()`; `useGSAP` from `@gsap/react` for scoping |
+| Resize | SplitText `autoSplit` re-measures lines and marks; the `ponytail:` reload is deleted             |
 
 ### Exit criteria
 
 - [ ] Turning reduced motion on while the page is open removes the pin and the scrub and shows every beat in its end state as an article; turning it off restores the story at the same beat — `tests/e2e/motion.spec.ts`
 - [ ] Resizing from 1440 to 1000 px wide re-measures lines and marks without reloading (`performance.navigation` count unchanged) and the marks stay under their words — `tests/e2e/motion.spec.ts`
 - [ ] Rotating a 390×844 viewport to landscape recomputes the pan distances (`invalidateOnRefresh`) — `tests/e2e/motion.spec.ts`
-- [ ] React StrictMode is on; the double mount in dev leaves one canvas, one ScrollTrigger and unsplit text before the second build — `tests/unit/landing/Landing.test.tsx`
+- [ ] React StrictMode is on; the double mount in dev leaves one canvas, one ScrollTrigger and unsplit text before the second build — `tests/unit/features/landing/Landing.test.tsx`
 - [ ] The hook greets on load before any scroll, and the forest grows in over about 3 s (intro, not scroll) — `tests/e2e/landing.spec.ts`
-- [ ] `?at=<beat>,<p>` still jumps for review, in development builds only — `tests/unit/landing/story.test.ts`
+- [ ] `?at=<beat>,<p>` still jumps for review, in development builds only — `tests/unit/features/landing/story.test.ts`
 
 ## Phase L7 — Accessibility and responsive
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BEATS } from '../../../src/landing/beats';
+import { BEATS } from '../../../../src/features/landing/beats';
 
 const ORDER = ['hero', 'seedling', 'problems', 'proof', 'pipeline', 'survival', 'carbon', 'roles'];
 

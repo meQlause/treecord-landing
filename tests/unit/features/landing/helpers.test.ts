@@ -1,6 +1,6 @@
 import { gsap } from 'gsap';
 import { describe, expect, it } from 'vitest';
-import { pick, place } from '../../../src/landing/helpers';
+import { pick, place } from '../../../../src/features/landing/helpers';
 
 describe('pick', () => {
   it('returns the element the selector names', () => {
