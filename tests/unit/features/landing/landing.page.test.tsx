@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { BEATS } from '../../../../src/features/landing/beats';
+import { COPY } from '../../../../src/features/landing/landing.copy';
 import { Landing } from '../../../../src/features/landing/landing.page';
 import { mountStory } from '../../../../src/features/landing/story';
 
@@ -37,5 +39,38 @@ describe('Landing', () => {
     unmount();
 
     expect(teardown).toHaveBeenCalledOnce();
+  });
+
+  it('builds the story once under StrictMode, which mounts, unmounts and mounts again', async () => {
+    vi.mocked(mountStory).mockClear();
+    const teardown = vi.fn();
+    vi.mocked(mountStory).mockReturnValue(teardown);
+
+    const { unmount } = render(
+      <StrictMode>
+        <Landing />
+      </StrictMode>,
+    );
+    await waitFor(() => expect(mountStory).toHaveBeenCalled());
+
+    expect(mountStory).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(teardown).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds no raw HTML: the beats are components and the art is mounted as parsed SVG', () => {
+    const { container } = render(<Landing />);
+
+    expect(container.querySelectorAll('section.beat')).toHaveLength(BEATS.length);
+    expect(container.querySelectorAll('section.beat svg').length).toBeGreaterThan(0);
+  });
+
+  it('takes the skip link, the stage label, the wordmark and the footer from the copy file', () => {
+    const { container } = render(<Landing />);
+
+    expect(screen.getByRole('link', { name: COPY.shell.skip })).not.toBeNull();
+    expect(container.querySelector('#stage')?.getAttribute('aria-label')).toBe(COPY.shell.label);
+    expect(container.querySelector('.wordmark')?.textContent).toBe(COPY.shell.name);
+    expect(screen.getByRole('contentinfo').textContent).toBe(COPY.shell.name + COPY.shell.footer);
   });
 });

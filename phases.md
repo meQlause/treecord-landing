@@ -60,13 +60,13 @@ src/
   styles.css                        the prototype's CSS (the design)
   features/landing/
     landing.page.tsx                route component: skeleton, mounts the story
-    landing.copy.ts                 every sentence (L5)                   ← svg-assets/src/story.js
+    landing.copy.ts                 every sentence; landing.links.ts the CTAs ← svg-assets/src/story.js
     story.ts                        master timeline, ScrollTrigger, mount/teardown
-    beats.ts  →  beats/*.tsx        the eight beats (L5)
+    beats/*.tsx                     the eight beats: a component and its timeline each
     camera.ts                       poses and the moves between beats
     stage3d.ts                      the 3D stage; rig; render loop
     three/                          forest, ground, tree, hero tree, carbon, sky (L3)  ← three-assets/src
-    words/                          rich marks, scribbles, script/greet (L5)           ← svg-assets/src/words.js
+    words/                          rich marks, scribbles, script/greet               ← svg-assets/src/words.js
     helpers.ts  types.ts
   shared/
     art/                            SVG art and icons, each with its timeline (L4)     ← svg-assets/src
@@ -194,8 +194,8 @@ against the same baseline instead of memory.
 - [x] Mobile load: at most 1,200 trees, 1,200 particles, fewer clouds, birds and leaves, DPR capped at 1.5, no antialias — `three/world.test.ts`
 - [x] Losing the WebGL context shows the plain paper background and the story still scrolls — `tests/e2e/context-loss.spec.ts` (this found that three sets `display` inline, which beat the `.gl-lost` rule; the prototype has the same defect, fixed here in the handler)
 - [x] `vite.config.ts` no longer needs the bridge for `three`; it stays for `gsap` until L4 moves the SVG art. The L2 pairs for the hero and carbon beats match by eye
-- [ ] Mounting and unmounting the stage five times leaves one canvas and no growing `renderer.info.memory` — arrives with L6, which makes remounting real (StrictMode)
-- [ ] The render loop stops while the stage is off screen — needs a frame counter the page does not expose yet; settled in L6 with the motion lifecycle
+- [x] Under StrictMode (mount, unmount, mount) exactly one canvas remains — `tests/e2e/landing.spec.ts` (the smoke test asserts one canvas); heap growth across remounts is measured in L8
+- [x] The render loop stops while the stage is off screen and resumes on return — `tests/e2e/render-loop.spec.ts` (counts the page's real WebGL draw calls, on a viewport shorter than the footer so the stage scrolls fully out of view)
 
 > **A review jump skips the load intro.** `?at=<beat>,<progress>` now shows a beat settled, without the forest's 3.2 s
 > growth, because under software WebGL the intro stretched past any fixed wait (GSAP's lag smoothing slows time when
@@ -225,44 +225,47 @@ Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it),
 - [x] Decorative SVGs carry `aria-hidden` and `focusable="false"`; the meaning is in the DOM text
 - [x] The L2 pairs for the problems, proof, pipeline and roles beats match by eye (only time-based motion and the scrambling characters differ)
 - [ ] An SVG stays under about 1,000 nodes, and a morphed path is a single `<path>`: not measured; the pipeline is the largest and is unchanged from the prototype
-- [ ] The Vite bridge for `gsap` is deleted: `words.js` and `story.js` still import from `svg-assets/`, so it goes with L5
+- [x] The app no longer reaches `svg-assets/` for art or words; the Vite bridge for their bare imports now applies in test mode only, for the oracle tests (L5)
 
 ## Phase L5 — Words engine and beats as JSX
 
 **Goal:** the copy, the masked line reveals, the hand-drawn marks and every beat's markup are React's (L-9).
 
-| Area  | Files                                                                                                                                                                                               |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Copy  | `src/features/landing/landing.copy.ts`: `story.js` verbatim, including the `{circle:…}`, `{num:…}`, `{swap:a\|b}` mark syntax                                                                       |
-| Words | `src/features/landing/words/rich.tsx` (marks → spans), `src/features/landing/words/marks.ts` (scribble paths, DrawSVG), `src/features/landing/words/script.ts` (`speak`, `script`, `greet`, `HOLD`) |
-| Beats | `src/features/landing/beats/Hero.tsx`, `Seedling.tsx`, `Problems.tsx`, `Proof.tsx`, `Pipeline.tsx`, `Survival.tsx`, `Carbon.tsx`, `Roles.tsx`, each with its `build` timeline beside it             |
+| Area  | Files                                                                                                                                                                                                   |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Copy  | `src/features/landing/landing.copy.ts`: the approved script verbatim (marks included) plus the shell strings; `landing.links.ts`: the two CTA targets                                                   |
+| Words | `words/rich.rules.ts` (pure: marks to pieces), `words/rich.tsx` (`Rich`, `Copy`), `words/marks.ts` (hand-drawn marks, one function per kind), `words/script.ts` (`prepare`, `speak`, `script`, `greet`) |
+| Beats | `beats/hero.tsx`, `seedling.tsx`, `problems.tsx`, `proof.tsx`, `pipeline.tsx`, `survival.tsx`, `carbon.tsx`, `roles.tsx`, each with its `build` timeline beside it; `beats/index.ts` lists them         |
+| Art   | `src/shared/art/art.tsx`: mounts a generator's `<svg>` as parsed SVG inside a space-free wrapper                                                                                                        |
 
 ### Exit criteria
 
-- [ ] `rich()` turns every mark kind in the legend into the prototype's span shape (`.fx[data-fx]`, `.num`, strike + new) — `tests/unit/features/landing/words/rich.test.tsx`
-- [ ] `script()` returns the time each line has really been read and its `end`, for `null` (already greeted) and numeric cues — `tests/unit/features/landing/words/script.test.ts`
-- [ ] Every sentence on the page comes from `landing.copy.ts`; `grep` finds no visible string in a component (L-3)
-- [ ] L-9: no `dangerouslySetInnerHTML` left in `src/`; each beat is a component and its section id is unchanged — `tests/unit/features/landing/beats/*.test.tsx`
-- [ ] Line masks keep descenders and raised step numbers (`.ln-mask` padding) — by eye in the L2 pairs
-- [ ] The words engine no longer imports `../svg-assets`; the Vite bridge plugin is deleted; the L2 pairs still match by eye
+- [x] `rich` turns every mark kind into the prototype's DOM, byte for byte, and `parseRich` splits text, marks, swaps and step numbers — `tests/unit/features/landing/words/rich.test.tsx`, `rich.rules.test.ts`
+- [x] `script()` returns the time each line has really been read and its `end`, for a null greeting and numeric cues; `marks` and `greet` match the prototype's overlay markup and tweens — `words/script.test.ts`, `words/marks.test.ts`
+- [x] Every sentence on the page comes from `landing.copy.ts` (the story word for word, plus the shell: skip link, label, wordmark, footer); no visible string is inline in a component — `landing.copy.test.ts`, `landing.page.test.tsx`
+- [x] No `dangerouslySetInnerHTML` left in `src/`; each beat is a component, its section id is unchanged, and it renders everything its timeline looks up — `tests/unit/features/landing/beats/index.test.tsx`
+- [x] Line masks keep descenders and raised step numbers (the `.ln-mask` padding is unchanged) — checked by eye in the hero, seedling and survival pairs
+- [x] The app imports nothing from `../svg-assets` or `../three-assets`. Only the unit tests do, to load the prototype as an oracle, so the Vite bridge now applies in test mode only
+- [ ] The art as JSX components: `Art` mounts the generators' strings, which are byte-identical to the prototype's and tested; one JSX component per asset is the upgrade path (`ponytail:` in `art.tsx`)
 
 ## Phase L6 — Motion lifecycle
 
 **Goal:** motion follows the visitor's settings and the window live, with no page reload and no leak.
 
-| Area   | Files                                                                                            |
-| ------ | ------------------------------------------------------------------------------------------------ |
-| Motion | `src/features/landing/story.ts` on `gsap.matchMedia()`; `useGSAP` from `@gsap/react` for scoping |
-| Resize | SplitText `autoSplit` re-measures lines and marks; the `ponytail:` reload is deleted             |
+| Area   | Files                                                                                                                                                                                                |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Motion | `src/shared/motion/env.ts`: the reduced-motion setting read live, and a watcher; `story.ts`: the WebGL stage lives for the visit, the story is built by `buildStory()`, which returns what undoes it |
+| Resize | A real width change (more than 40 px) rebuilds the story in place; the reload is gone                                                                                                                |
 
 ### Exit criteria
 
-- [ ] Turning reduced motion on while the page is open removes the pin and the scrub and shows every beat in its end state as an article; turning it off restores the story at the same beat — `tests/e2e/motion.spec.ts`
-- [ ] Resizing from 1440 to 1000 px wide re-measures lines and marks without reloading (`performance.navigation` count unchanged) and the marks stay under their words — `tests/e2e/motion.spec.ts`
-- [ ] Rotating a 390×844 viewport to landscape recomputes the pan distances (`invalidateOnRefresh`) — `tests/e2e/motion.spec.ts`
-- [ ] React StrictMode is on; the double mount in dev leaves one canvas, one ScrollTrigger and unsplit text before the second build — `tests/unit/features/landing/Landing.test.tsx`
-- [ ] The hook greets on load before any scroll, and the forest grows in over about 3 s (intro, not scroll) — `tests/e2e/landing.spec.ts`
-- [ ] `?at=<beat>,<p>` still jumps for review, in development builds only — `tests/unit/features/landing/story.test.ts`
+- [x] Turning reduced motion on while the page is open removes the pin and the scrub and shows every beat as an article; turning it off restores the story at the hero — `tests/e2e/motion.spec.ts`
+- [x] Resizing from 1440 to 1000 px wide re-measures lines and marks without reloading (same `timeOrigin`), and the mark layers are rebuilt, not duplicated — `tests/e2e/motion.spec.ts`
+- [x] Rotating a 390×844 phone to landscape recomputes the scroll length, and the story still reaches its end — `tests/e2e/motion.spec.ts`
+- [x] React StrictMode is on; the dev double mount builds the story exactly once and tears it down once — `landing.page.test.tsx`
+- [x] The hook greets on load before any scroll — `tests/e2e/motion.spec.ts`
+- [x] `?at=<beat>,<p>` jumps for review, and only in development builds (`import.meta.env.DEV`); the production gate is checked on the build preview in L8
+- [x] The reduced-motion setting and its live watcher — `tests/unit/shared/motion/env.test.ts`
 
 ## Phase L7 — Accessibility and responsive
 
@@ -286,6 +289,7 @@ Not ported, because no beat uses them: `tree.js` (the 3D hero tree replaces it),
 - [ ] Three.js and the 3D layer load lazily (`import()` in the effect), so the hero text paints before WebGL; the largest contentful paint is the headline — `tests/e2e/performance.spec.ts`
 - [ ] No chunk over 500 kB after minification; `vite build` prints no size warning
 - [ ] Fonts preconnect and use `display=swap`; the story mounts after `document.fonts.ready`, as now
+- [ ] `?at=` is ignored by the production build, and the heap does not grow across repeated remounts
 - [ ] No `markers`, `console.log` or debug flag in the build ([`../foundation.md`](../foundation.md) §5)
 - [ ] L-11: both CTAs point at the hosting site's real routes from one `LINKS` constant — `tests/e2e/landing.spec.ts`
 - [ ] Checked on a real laptop GPU and a real phone (iPhone Safari, Android Chrome): smooth scrub, no address-bar jump (`svh`), forest renders ([`../landing/README.md`](../landing/README.md) "not yet tested on real devices")

@@ -1,4 +1,5 @@
 import type { gsap } from 'gsap';
+import type { ReactElement } from 'react';
 
 /** Camera pose + scene state. p* = camera position, l* = look-at target. */
 export interface Rig {
@@ -29,6 +30,7 @@ export interface Beat {
   cls: string;
   /** The camera move that brings the beat in; the first beat has none. */
   enter: Enter | null;
-  html: () => string;
+  /** What the beat's section holds. */
+  Content: () => ReactElement;
   build: (timeline: Timeline, root: HTMLElement, rig: Rig, motion: boolean) => void;
 }

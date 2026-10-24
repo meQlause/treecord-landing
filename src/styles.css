@@ -48,6 +48,9 @@ svg {
   position: absolute;
   inset: 0;
 }
+.art {
+  display: contents; /* the wrapper around an art <svg> takes no space */
+}
 .gl canvas {
   display: block;
   width: 100%;

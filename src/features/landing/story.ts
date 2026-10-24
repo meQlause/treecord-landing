@@ -1,18 +1,22 @@
 // Assembles the story: every beat's inner timeline, one master timeline of beat / camera move / beat,
 // and the scroll trigger that pins the stage and scrubs it.
+//
+// Two lifetimes. The WebGL stage lives for the whole visit. The story (split words, drawn marks, timelines,
+// the pin) is built by buildStory(), which returns what undoes it, so a resize or a change of the visitor's
+// motion setting rebuilds it in place: no page reload.
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
-import { greet } from '../../../../svg-assets/src/words.js';
+import { pick } from '../../shared/dom';
+import { MOBILE, prefersReducedMotion, watchReducedMotion } from '../../shared/motion/env';
 import { BEATS } from './beats';
 import { ENTER, MOVE, POSES } from './camera';
-import { MOBILE, REDUCE } from '../../shared/motion/env';
-import { pick } from '../../shared/dom';
-import { createStage3D } from './stage3d';
+import { createStage3D, type Stage3D } from './stage3d';
 import type { Beat, Rig, Timeline } from './types';
+import { greet } from './words/script';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, MotionPathPlugin, ScrambleTextPlugin);
 
@@ -30,14 +34,14 @@ export interface StageParts {
 const SCROLL_PER_UNIT = { mobile: 0.95, desktop: 1.15 }; // slow enough to read
 const GROW = { length: 3.2, delay: 0.1 };
 const SCRUB = 0.7;
-const RELOAD = { width: 40, wait: 300 };
+const RESIZE = { width: 40, wait: 300 };
 
 /** Inner timelines for every beat, built before any beat is moved or scaled so measurements are true. */
-function buildBeats(stage: HTMLElement, rig: Rig): Built[] {
+function buildBeats(stage: HTMLElement, rig: Rig, motion: boolean): Built[] {
   return BEATS.map((beat) => {
     const root = pick(stage, `#${beat.id}`);
     const timeline = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
-    beat.build(timeline, root, rig, !REDUCE);
+    beat.build(timeline, root, rig, motion);
 
     return { ...beat, root, timeline };
   });
@@ -57,7 +61,11 @@ function buildMaster(beats: Built[], rig: Rig, rail: HTMLElement): Timeline {
   return master.fromTo(rail, { scaleX: 0 }, { scaleX: 1, duration: master.duration() }, 0);
 }
 
-/** ?at=survival,0.5 jumps to a beat at a progress within it (review and screenshots). */
+/** ?at=survival,0.5 jumps to a beat at a progress within it (review and screenshots), in development only. */
+function reviewTarget(): string | null {
+  return import.meta.env.DEV ? new URLSearchParams(location.search).get('at') : null;
+}
+
 function jumpTo(target: string, beats: Built[], master: Timeline, trigger: ScrollTrigger): void {
   const [id, progress] = target.split(',');
   const beat = beats.find((candidate) => candidate.id === id);
@@ -68,10 +76,17 @@ function jumpTo(target: string, beats: Built[], master: Timeline, trigger: Scrol
   window.scrollTo(0, trigger.start + (trigger.end - trigger.start) * (time / master.duration()));
 }
 
-function playMotion(parts: StageParts, beats: Built[], rig: Rig, hello: Timeline | null): void {
-  // a review jump (?at=beat,progress) shows the beat settled, so it skips the forest's growth on load
-  const target = new URLSearchParams(location.search).get('at');
-  if (!target) {
+interface Run {
+  parts: StageParts;
+  rig: Rig;
+  /** First build of a visit: the forest grows in and the hook greets. A rebuild shows both settled. */
+  intro: boolean;
+}
+
+function playMotion({ parts, rig, intro }: Run, beats: Built[], hello: Timeline): void {
+  const target = reviewTarget();
+  // a review jump shows the beat settled, so it skips the forest's growth on load
+  if (intro && !target) {
     gsap.from(rig, { grow: 0, duration: GROW.length, ease: 'power2.out', delay: GROW.delay });
   }
   gsap.set(beats[0].root, { autoAlpha: 1 });
@@ -87,7 +102,11 @@ function playMotion(parts: StageParts, beats: Built[], rig: Rig, hello: Timeline
     invalidateOnRefresh: true,
   });
   ScrollTrigger.refresh();
-  hello?.play();
+  if (intro) {
+    hello.play();
+  } else {
+    hello.progress(1);
+  }
   if (target) {
     jumpTo(target, beats, master, trigger);
   }
@@ -95,56 +114,102 @@ function playMotion(parts: StageParts, beats: Built[], rig: Rig, hello: Timeline
 
 /** Reduced motion: no pin, no scrub. Every beat shows its final state as a plain article, every headline
  * visible, marks drawn. The 3D layer is a still backdrop. */
-function settle(stage: HTMLElement, beats: Built[], rig: Rig, render: () => void): void {
+function settle({ parts, rig }: Run, beats: Built[], render: () => void): void {
   beats.forEach((beat) => beat.timeline.progress(1));
-  gsap.set(stage.querySelectorAll('.say, .strip, .beat'), {
+  gsap.set(parts.stage.querySelectorAll('.say, .strip, .beat'), {
     clearProps: 'opacity,visibility,transform',
   });
   Object.assign(rig, POSES.roles, { heroGrowth: 1, dim: 0.65 });
   render();
 }
 
-// ponytail: word marks and line masks are measured once, so a real width change reloads the page.
-// Upgrade path: re-measure through SplitText autoSplit.
-function reloadOnResize(): () => void {
-  const lastWidth = innerWidth;
-  let timer: ReturnType<typeof setTimeout>;
-  const onResize = (): void => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (Math.abs(innerWidth - lastWidth) > RELOAD.width) {
-        location.reload();
-      }
-    }, RELOAD.wait);
+/** Builds the story on the mounted stage and returns what undoes it. */
+function buildStory(run: Run, stage3d: Stage3D, reduce: boolean): () => void {
+  const { parts, rig } = run;
+  if (reduce) {
+    delete parts.stage.dataset.motion;
+  } else {
+    parts.stage.dataset.motion = ''; // the pinned layout; without it (no script, reduced motion) the page is an article
+  }
+  Object.assign(rig, POSES.hero);
+  const context = gsap.context(() => {
+    // the hook greets on load, before any scroll; the forest grows around the seedling at the same time
+    const hello = greet(pick(parts.stage, '.hook .say'));
+    const beats = buildBeats(parts.stage, rig, !reduce);
+    if (reduce) {
+      hello.progress(1);
+      settle(run, beats, stage3d.render);
+    } else {
+      playMotion(run, beats, hello);
+    }
+  }, parts.stage);
+
+  return () => {
+    context.revert();
+    parts.stage.querySelectorAll('.fx-layer').forEach((layer) => layer.remove()); // the marks' overlay layers
   };
-  addEventListener('resize', onResize);
+}
+
+interface Session {
+  reduce: boolean;
+  stage3d: Stage3D;
+  undo: () => void;
+  width: number;
+}
+
+function begin(parts: StageParts, reduce: boolean): Session {
+  const stage3d = createStage3D(parts.host, { mobile: MOBILE, still: reduce });
+  const undo = buildStory({ parts, rig: stage3d.rig, intro: true }, stage3d, reduce);
+
+  return { reduce, stage3d, undo, width: innerWidth };
+}
+
+function end(session: Session): void {
+  session.undo();
+  session.stage3d.dispose();
+}
+
+/** A real width change: lines wrap differently, so words and marks are measured again. */
+function rebuild(parts: StageParts, session: Session): void {
+  session.undo();
+  session.undo = buildStory(
+    { parts, rig: session.stage3d.rig, intro: false },
+    session.stage3d,
+    session.reduce,
+  );
+  session.width = innerWidth;
+}
+
+function watchResize(onResize: () => void): () => void {
+  let timer: ReturnType<typeof setTimeout>;
+  const listener = (): void => {
+    clearTimeout(timer);
+    timer = setTimeout(onResize, RESIZE.wait);
+  };
+  addEventListener('resize', listener);
 
   return () => {
     clearTimeout(timer);
-    removeEventListener('resize', onResize);
+    removeEventListener('resize', listener);
   };
 }
 
 /** Builds the whole story on a mounted stage and returns what undoes it. */
 export function mountStory(parts: StageParts): () => void {
-  const stage3d = createStage3D(parts.host, { mobile: MOBILE, still: REDUCE });
-  const { rig } = stage3d;
-  Object.assign(rig, POSES.hero);
-  // the hook greets on load, before any scroll; the forest grows around the seedling at the same time
-  const hello = REDUCE ? null : greet(pick(parts.stage, '.hook .say'));
-  const context = gsap.context(() => {
-    const beats = buildBeats(parts.stage, rig);
-    if (REDUCE) {
-      settle(parts.stage, beats, rig, stage3d.render);
-    } else {
-      playMotion(parts, beats, rig, hello);
+  let session = begin(parts, prefersReducedMotion());
+  const stopResize = watchResize(() => {
+    if (Math.abs(innerWidth - session.width) > RESIZE.width) {
+      rebuild(parts, session);
     }
-  }, parts.stage);
-  const stopResize = reloadOnResize();
+  });
+  const stopMotion = watchReducedMotion((reduce) => {
+    end(session);
+    session = begin(parts, reduce);
+  });
 
   return () => {
     stopResize();
-    context.revert();
-    stage3d.dispose();
+    stopMotion();
+    end(session);
   };
 }

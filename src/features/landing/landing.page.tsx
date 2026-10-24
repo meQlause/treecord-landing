@@ -3,7 +3,7 @@
 // React owns the page skeleton; GSAP owns everything inside the stage once it is mounted.
 import { useEffect, useRef } from 'react';
 import { BEATS } from './beats';
-import { REDUCE } from '../../shared/motion/env';
+import { COPY } from './landing.copy';
 import { mountStory } from './story';
 
 export function Landing() {
@@ -30,33 +30,22 @@ export function Landing() {
   return (
     <>
       <a className="skip" href="#end">
-        Skip the story
+        {COPY.shell.skip}
       </a>
       <main>
-        <section
-          ref={stage}
-          className="stage"
-          id="stage"
-          aria-label="Treecord, every tree proven"
-          data-motion={REDUCE ? undefined : ''}
-        >
+        <section ref={stage} className="stage" id="stage" aria-label={COPY.shell.label}>
           <div ref={host} className="gl" />
-          {/* ponytail: beat markup comes from the shared svg-assets generators as trusted HTML strings (no
-              user input); port them to JSX components when the assets stop being shared with the preview pages. */}
           {BEATS.map((beat) => (
-            <section
-              key={beat.id}
-              id={beat.id}
-              className={`beat ${beat.cls}`}
-              dangerouslySetInnerHTML={{ __html: beat.html() }}
-            />
+            <section key={beat.id} id={beat.id} className={`beat ${beat.cls}`}>
+              <beat.Content />
+            </section>
           ))}
           <div ref={rail} className="rail" />
         </section>
       </main>
       <footer className="foot" id="end">
-        <strong>Treecord</strong>
-        <span>Every tree, proven.</span>
+        <strong>{COPY.shell.name}</strong>
+        <span>{COPY.shell.footer}</span>
       </footer>
     </>
   );
