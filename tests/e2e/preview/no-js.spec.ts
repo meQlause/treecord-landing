@@ -56,6 +56,7 @@ test.describe('without JavaScript', () => {
         .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
     ).toEqual([LINKS.fund, LINKS.becomePlanter]);
     await expect(page.locator('footer')).toHaveText(COPY.shell.name + COPY.shell.footer);
+    await expect(page.locator('#loader')).toBeHidden(); // the loader only shows when scripts run
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -71,6 +72,19 @@ test.describe('with JavaScript', () => {
     await expect(page.locator('#stage')).toHaveAttribute('data-motion', '');
     await expect(page.locator('#stage .gl canvas')).toHaveCount(1);
     await page.locator('.pin-spacer').waitFor({ state: 'attached' });
+  });
+
+  test('a loader covers the page until the forest is ready, then lifts and is removed', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'commit' });
+    await expect(page.locator('#loader')).toBeVisible();
+
+    await expect(page.locator('#loader')).toHaveCount(0);
+    await expect(page.locator('#stage .gl canvas')).toHaveCount(1);
+    expect(await page.evaluate(() => document.documentElement.classList.contains('loading'))).toBe(
+      false,
+    );
   });
 
   test('the review jump ?at= is ignored by the production build', async ({ page }) => {

@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 
 type Marked = { __firstDraw?: number };
 
-test('the headline paints before the 3D layer draws its first frame', async ({ page }) => {
+test('something paints (the loader) before the 3D layer draws its first frame', async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     const marked = window as unknown as Marked;
     const proto = WebGL2RenderingContext.prototype as unknown as Record<
@@ -47,7 +49,7 @@ test('the headline paints before the 3D layer draws its first frame', async ({ p
   expect(paint.lcpIsHeadline).toBe(true);
 });
 
-test('the 3D layer is not needed to show the first screen: the page loads without it', async ({
+test('the 3D layer is not in the page: it is a chunk loaded after the first paint', async ({
   page,
 }) => {
   const loaded: string[] = [];

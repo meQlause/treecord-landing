@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- viewport-fit=cover: on Android's gesture bar (and iOS's home indicator) the page draws to the bottom edge -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f6f2" />
     <title>Treecord</title>
     <meta
       name="description"
@@ -14,8 +16,172 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
     />
+    <script>
+      // The loader shows only when scripts run (without them the page is the plain article). The app lifts it
+      // once the fonts and the 3D layer are ready; the timer makes sure it never stays up if something fails.
+      document.documentElement.classList.add('loading');
+      setTimeout(() => document.documentElement.classList.remove('loading'), 15000);
+    </script>
+    <!-- inline, so the loader is styled on the very first frame, before the app's stylesheet arrives -->
+    <style>
+      .loader {
+        display: none;
+      }
+      .loading .loader,
+      .loader.lifting {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background: #f7f6f2;
+        color: #1c1f1d;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        pointer-events: none;
+      }
+      .loading body {
+        overflow: hidden;
+      }
+      .loader.lifting {
+        opacity: 0;
+        transition: opacity 0.7s ease;
+      }
+      .loader-inner {
+        display: grid;
+        justify-items: center;
+        gap: 18px;
+      }
+      .loader svg {
+        width: 132px;
+        height: 132px;
+        overflow: visible;
+      }
+      .loader .sprout {
+        transform-origin: 66px 96px;
+        animation: loader-grow 1.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+      }
+      .loader .leaf-l,
+      .loader .leaf-r {
+        transform-box: fill-box;
+        animation: loader-sway 2.8s ease-in-out 1.4s infinite alternate;
+      }
+      .loader .leaf-l {
+        transform-origin: 100% 100%;
+      }
+      .loader .leaf-r {
+        transform-origin: 0% 100%;
+        animation-delay: 1.6s;
+      }
+      .loader .halo {
+        transform-origin: 66px 62px;
+        animation: loader-breathe 2.8s ease-in-out infinite alternate;
+      }
+      .loader-word {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .loader-track {
+        width: 168px;
+        height: 3px;
+        border-radius: 3px;
+        background: #e6f0e9;
+        overflow: hidden;
+      }
+      .loader-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, #2e9e5b, #1f5d3a);
+        transform-origin: 0 50%;
+        transform: scaleX(0);
+        animation: loader-fill 6s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+      }
+      .loader.lifting .loader-fill {
+        transform: scaleX(1);
+        animation: none;
+        transition: transform 0.3s ease;
+      }
+      .loader-note {
+        margin: 0;
+        font:
+          12px/1 'JetBrains Mono',
+          ui-monospace,
+          monospace;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #6b726e;
+      }
+      @keyframes loader-grow {
+        from {
+          transform: scale(0.2);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @keyframes loader-sway {
+        from {
+          transform: rotate(-4deg);
+        }
+        to {
+          transform: rotate(5deg);
+        }
+      }
+      @keyframes loader-breathe {
+        from {
+          transform: scale(0.94);
+          opacity: 0.55;
+        }
+        to {
+          transform: scale(1.04);
+          opacity: 0.9;
+        }
+      }
+      @keyframes loader-fill {
+        to {
+          transform: scaleX(0.9);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader *,
+        .loader.lifting {
+          animation: none !important;
+          transition: none !important;
+        }
+        .loader-fill {
+          transform: scaleX(0.6);
+        }
+      }
+    </style>
   </head>
   <body>
+    <div class="loader" id="loader" role="status" aria-live="polite">
+      <div class="loader-inner">
+        <svg viewBox="0 0 132 132" aria-hidden="true">
+          <circle class="halo" cx="66" cy="62" r="50" fill="#e6f0e9" />
+          <polygon points="26,104 42,92 66,88 92,92 108,104 66,110" fill="#9a5b36" />
+          <polygon points="42,92 66,88 66,100 34,100" fill="#b06a40" />
+          <polygon points="66,88 92,92 100,100 66,100" fill="#874d2d" />
+          <g class="sprout">
+            <polygon points="64,94 68,94 67,56 65,56" fill="#6b4a2b" />
+            <g class="leaf-l">
+              <polygon points="65,62 36,46 46,66" fill="#2e9e5b" />
+              <polygon points="65,62 36,46 52,50" fill="#3fb36c" />
+            </g>
+            <g class="leaf-r">
+              <polygon points="67,58 98,38 88,60" fill="#1f5d3a" />
+              <polygon points="67,58 98,38 80,44" fill="#2e7d4c" />
+            </g>
+          </g>
+        </svg>
+        <p class="loader-word">Treecord</p>
+        <div class="loader-track"><div class="loader-fill"></div></div>
+        <p class="loader-note">Growing the forest</p>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -8,6 +8,8 @@ import { mountStory } from '../../../../src/features/landing/story';
 
 // the story needs WebGL and layout, neither of which jsdom has; this file covers the React skeleton only
 vi.mock('../../../../src/features/landing/story', () => ({ mountStory: vi.fn(() => vi.fn()) }));
+// the page waits for the 3D chunk before it mounts; three.js itself is not needed here
+vi.mock('../../../../src/features/landing/stage3d', () => ({ createStage3D: vi.fn() }));
 
 describe('Landing', () => {
   it('renders the skip link, one section per beat and the footer', () => {
@@ -28,6 +30,21 @@ describe('Landing', () => {
       host: container.querySelector('.gl'),
       rail: container.querySelector('.rail'),
     });
+  });
+
+  it('lifts the loader once the story is mounted, and removes it', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'requestAnimationFrame'] });
+    const loader = document.body.appendChild(document.createElement('div'));
+    loader.id = 'loader';
+    document.documentElement.classList.add('loading');
+    render(<Landing />);
+    await vi.waitFor(() => expect(mountStory).toHaveBeenCalled());
+
+    await vi.runAllTimersAsync();
+
+    expect(document.documentElement.classList.contains('loading')).toBe(false);
+    expect(document.getElementById('loader')).toBeNull();
+    vi.useRealTimers();
   });
 
   it('tears the story down on unmount', async () => {

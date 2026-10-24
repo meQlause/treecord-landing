@@ -328,6 +328,9 @@ svg {
   gap: 16px;
   flex-wrap: wrap;
   padding: 40px var(--gutter);
+  padding-bottom: calc(
+    40px + env(safe-area-inset-bottom)
+  ); /* the page draws under the gesture bar (viewport-fit=cover) */
   background: var(--primary);
   color: #fff;
 }
